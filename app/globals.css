@@ -1,0 +1,205 @@
+@import "tailwindcss";
+
+@theme {
+  --color-paper: #E9DFC6;
+  --color-paper-deep: #D9CDB0;
+  --color-paper-quiet: #F1E9D3;
+  --color-ink: #1F1A2C;
+  --color-ink-warm: #3E3344;
+  --color-ink-mute: #6B5F76;
+  --color-vermilion: #D43E2C;
+  --color-marigold: #C29736;
+  --color-indigo: #21306E;
+  --color-moss: #516A3F;
+  --color-dust: #A89A82;
+  --color-error: #9B2A1B;
+
+  --font-display: "Fraunces", Georgia, serif;
+  --font-sans: "Geist", system-ui, -apple-system, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  --ease-out-expo: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out-quint: cubic-bezier(0.83, 0, 0.17, 1);
+
+  --duration-micro: 120ms;
+  --duration-quick: 220ms;
+  --duration-standard: 360ms;
+  --duration-signature: 720ms;
+
+  --container-bureau: 1320px;
+}
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    border-color: color-mix(in oklab, var(--color-ink) 12%, transparent);
+  }
+
+  html,
+  body {
+    background: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.55;
+    letter-spacing: -0.005em;
+    font-feature-settings: "ss01", "cv11";
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--color-marigold) 36%, transparent);
+    color: var(--color-ink);
+  }
+
+  :focus-visible {
+    outline: 2px solid color-mix(in oklab, var(--color-marigold) 64%, transparent);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  button:focus:not(:focus-visible),
+  a:focus:not(:focus-visible) {
+    outline: none;
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: var(--font-display);
+    font-feature-settings: "ss01";
+    font-variation-settings: "SOFT" 80, "opsz" 144, "wght" 400;
+  }
+
+  .font-display-tight {
+    font-family: var(--font-display);
+    font-feature-settings: "ss01";
+    font-variation-settings: "SOFT" 80, "opsz" 72, "wght" 500;
+  }
+
+  .font-meta {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    line-height: 1;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+
+  .font-numeric {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0;
+  }
+
+  .text-display-xl {
+    font-size: clamp(64px, 9vw, 96px);
+    line-height: 0.92;
+    letter-spacing: -0.04em;
+  }
+
+  .text-display-l {
+    font-size: clamp(44px, 6vw, 64px);
+    line-height: 0.95;
+    letter-spacing: -0.03em;
+  }
+
+  .text-display-m {
+    font-size: 40px;
+    line-height: 1;
+    letter-spacing: -0.025em;
+  }
+
+  .text-subhead {
+    font-size: 22px;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+  }
+
+  .text-body-l {
+    font-size: 17px;
+    line-height: 1.55;
+    letter-spacing: -0.005em;
+  }
+
+  .text-body-s {
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .hairline {
+    background: color-mix(in oklab, var(--color-ink) 12%, transparent);
+    height: 1px;
+    width: 100%;
+  }
+
+  .hairline-strong {
+    background: color-mix(in oklab, var(--color-ink) 24%, transparent);
+    height: 1px;
+    width: 100%;
+  }
+
+  @keyframes reveal-up {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 12px, 0);
+    }
+    to {
+      opacity: 1;
+      transform: translate3d(0, 0, 0);
+    }
+  }
+
+  @keyframes reveal-quiet {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes knot-draw {
+    from { stroke-dashoffset: 760; }
+    to { stroke-dashoffset: 0; }
+  }
+
+  @keyframes shimmer {
+    from { background-position: -200% 0; }
+    to { background-position: 200% 0; }
+  }
+
+  .anim-reveal {
+    animation: reveal-up var(--duration-standard) var(--ease-out-expo) both;
+  }
+
+  .anim-reveal-quiet {
+    animation: reveal-quiet var(--duration-standard) var(--ease-out-expo) both;
+  }
+
+  .anim-delay-1 { animation-delay: 120ms; }
+  .anim-delay-2 { animation-delay: 240ms; }
+  .anim-delay-3 { animation-delay: 360ms; }
+  .anim-delay-4 { animation-delay: 480ms; }
+
+  .skeleton {
+    background: color-mix(in oklab, var(--color-paper-deep) 80%, transparent);
+    background-image: linear-gradient(
+      90deg,
+      transparent 0%,
+      color-mix(in oklab, var(--color-paper) 60%, transparent) 50%,
+      transparent 100%
+    );
+    background-size: 200% 100%;
+    background-repeat: no-repeat;
+    animation: shimmer 1600ms linear infinite;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
+}

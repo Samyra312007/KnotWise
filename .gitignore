@@ -1,0 +1,16 @@
+node_modules
+.next
+.env
+.env.local
+.DS_Store
+dist
+*.log
+coverage
+.vercel
+prisma/dev.db
+prisma/dev.db-journal
+data/dummy-profiles.json
+.agents
+.cursor
+.vscode
+docs/

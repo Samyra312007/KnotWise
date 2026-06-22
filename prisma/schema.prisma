@@ -1,0 +1,116 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Matchmaker {
+  id           String   @id @default(cuid())
+  username     String   @unique
+  passwordHash String
+  fullName     String
+  createdAt    DateTime @default(now())
+
+  customers Customer[]
+  notes     Note[]
+  emails    EmailLog[]
+}
+
+model Customer {
+  id           String     @id @default(cuid())
+  matchmakerId String
+  matchmaker   Matchmaker @relation(fields: [matchmakerId], references: [id])
+
+  firstName     String
+  lastName      String
+  gender        String
+  dateOfBirth   DateTime
+  city          String
+  country       String
+  maritalStatus String
+
+  stage    String  @default("Onboarding")
+  biodata  String
+  photoUrl String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  notes       Note[]
+  suggestions MatchSuggestion[]
+
+  @@index([matchmakerId])
+  @@index([stage])
+  @@index([gender])
+}
+
+model PoolProfile {
+  id          String   @id @default(cuid())
+  firstName   String
+  lastName    String
+  gender      String
+  dateOfBirth DateTime
+  city        String
+  country     String
+  biodata     String
+  photoUrl    String?
+
+  suggestions MatchSuggestion[]
+
+  @@index([gender])
+  @@index([city])
+}
+
+model MatchSuggestion {
+  id            String @id @default(cuid())
+  customerId    String
+  poolProfileId String
+
+  customer    Customer    @relation(fields: [customerId], references: [id])
+  poolProfile PoolProfile @relation(fields: [poolProfileId], references: [id])
+
+  score       Int
+  bucket      String
+  explanation String
+  breakdown   String
+  status      String @default("shortlisted")
+
+  createdAt DateTime @default(now())
+
+  emails EmailLog[]
+
+  @@unique([customerId, poolProfileId])
+  @@index([customerId, status])
+}
+
+model Note {
+  id           String @id @default(cuid())
+  customerId   String
+  matchmakerId String
+  body         String
+
+  createdAt DateTime @default(now())
+
+  customer   Customer   @relation(fields: [customerId], references: [id])
+  matchmaker Matchmaker @relation(fields: [matchmakerId], references: [id])
+
+  @@index([customerId, createdAt])
+}
+
+model EmailLog {
+  id                String @id @default(cuid())
+  matchSuggestionId String
+  matchmakerId      String
+
+  subject String
+  body    String
+  sentAt  DateTime @default(now())
+
+  matchSuggestion MatchSuggestion @relation(fields: [matchSuggestionId], references: [id])
+  matchmaker      Matchmaker      @relation(fields: [matchmakerId], references: [id])
+
+  @@index([matchmakerId, sentAt])
+}
