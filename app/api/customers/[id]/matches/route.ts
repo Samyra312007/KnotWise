@@ -1,42 +1,59 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getSession } from "@/lib/auth/session";
+import { requireApiSession, notFound } from "@/lib/auth/api";
+import { canAccessCustomer } from "@/lib/access/customers";
 import type { Biodata, ScoredCandidate, Stage } from "@/lib/types";
-import { rankMatches } from "@/lib/matching";
 import { explainMatchFallback } from "@/lib/ai/fallback";
 import { explainMatchesBatch } from "@/lib/ai/explain";
+import { rankMatchesForOrg, getVerifiedPool } from "@/lib/matching/org-rank";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }) {
-  const session = await getSession();
-  if (!session.matchmakerId) {
-    return NextResponse.json({ error: { code: "UNAUTHORIZED", message: "Sign in first." } }, { status: 401 });
-  }
+  const session = await requireApiSession();
+  if (session instanceof NextResponse) return session;
   const { id } = await ctx.params;
   const url = new URL(req.url);
   const bucketParam = (url.searchParams.get("bucket") ?? "high").toLowerCase();
+  const view = url.searchParams.get("view");
   const limit = Math.min(24, Number(url.searchParams.get("limit") ?? 12) || 12);
 
-  const customer = await prisma.customer.findFirst({
-    where: { id, matchmakerId: session.matchmakerId },
-  });
-  if (!customer) {
-    return NextResponse.json({ error: { code: "NOT_FOUND", message: "This file is not in your bureau." } }, { status: 404 });
-  }
+  const allowed = await canAccessCustomer(id, session.matchmakerId, session.orgId, session.role);
+  if (!allowed) return notFound("This file is not in your bureau.");
+
+  const customer = await prisma.customer.findFirst({ where: { id, orgId: session.orgId } });
+  if (!customer) return notFound("This file is not in your bureau.");
 
   const clientBiodata = JSON.parse(customer.biodata) as Biodata;
-  const oppositeGender = clientBiodata.gender === "male" ? "female" : "male";
 
-  const pool = await prisma.poolProfile.findMany({
-    where: { gender: oppositeGender },
-    select: { id: true, biodata: true },
-  });
+  if (view === "shortlisted") {
+    const rows = await prisma.matchSuggestion.findMany({
+      where: { customerId: id, status: "shortlisted" },
+      include: { poolProfile: true, emails: { orderBy: { sentAt: "desc" }, take: 1 } },
+      orderBy: { score: "desc" },
+      take: limit,
+    });
+    const items: ScoredCandidate[] = rows.map((row) => {
+      const biodata = JSON.parse(row.poolProfile.biodata) as Biodata;
+      return {
+        candidate: { id: row.poolProfileId, ...biodata },
+        score: row.score,
+        bucket: row.bucket as ScoredCandidate["bucket"],
+        explanation: row.explanation,
+        breakdown: JSON.parse(row.breakdown) as Record<string, number>,
+        alreadySent: false,
+        modelAdjusted: row.modelAdjusted,
+      };
+    });
+    return NextResponse.json({
+      items,
+      counts: { high: 0, medium: 0, all: items.length, shortlisted: items.length },
+      customer: { firstName: clientBiodata.firstName, stage: customer.stage as Stage },
+    });
+  }
 
-  const ranked = rankMatches(
-    clientBiodata,
-    pool.map((p) => ({ id: p.id, biodata: JSON.parse(p.biodata) as Biodata }))
-  );
+  const pool = await getVerifiedPool(session.orgId, clientBiodata.gender);
+  const ranked = await rankMatchesForOrg(session.orgId, clientBiodata, pool);
 
   let filtered = ranked;
   if (bucketParam === "high") filtered = ranked.filter((r) => r.bucket === "high");
@@ -46,10 +63,18 @@ export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }
 
   const sentRows = await prisma.matchSuggestion.findMany({
     where: { customerId: id, poolProfileId: { in: top.map((t) => t.id) } },
-    include: { emails: { select: { sentAt: true }, orderBy: { sentAt: "desc" }, take: 1 } },
+    include: { emails: { select: { sentAt: true, id: true, subject: true, body: true, deliveryStatus: true }, orderBy: { sentAt: "desc" }, take: 1 } },
   });
   const sentMap = new Map(
-    sentRows.map((r) => [r.poolProfileId, { status: r.status, sentAt: r.emails[0]?.sentAt ?? r.createdAt }])
+    sentRows.map((r) => [
+      r.poolProfileId,
+      {
+        status: r.status,
+        sentAt: r.emails[0]?.sentAt ?? r.createdAt,
+        lastEmail: r.emails[0] ?? null,
+        explanation: r.explanation,
+      },
+    ])
   );
 
   const explanations = await explainMatchesBatch(
@@ -64,7 +89,8 @@ export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }
   const items: ScoredCandidate[] = top.map((m, idx) => {
     const sent = sentMap.get(m.id);
     const explanation =
-      explanations[idx] ??
+      sent?.explanation ||
+      explanations[idx] ||
       explainMatchFallback(clientBiodata, m.biodata, m.breakdown, m.contributions);
     return {
       candidate: { id: m.id, ...m.biodata },
@@ -74,18 +100,29 @@ export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }
       breakdown: m.breakdown,
       alreadySent: sent?.status === "sent",
       sentAt: sent?.sentAt ? new Date(sent.sentAt).toISOString() : undefined,
+      lastEmail: sent?.lastEmail
+        ? {
+            subject: sent.lastEmail.subject,
+            body: sent.lastEmail.body,
+            deliveryStatus: sent.lastEmail.deliveryStatus,
+          }
+        : undefined,
+      modelAdjusted: m.modelAdjusted,
     };
   });
 
-  const total = {
-    high: ranked.filter((r) => r.bucket === "high").length,
-    medium: ranked.filter((r) => r.bucket === "medium").length,
-    all: ranked.length,
-  };
+  const shortlistedCount = await prisma.matchSuggestion.count({
+    where: { customerId: id, status: "shortlisted" },
+  });
 
   return NextResponse.json({
     items,
-    counts: total,
+    counts: {
+      high: ranked.filter((r) => r.bucket === "high").length,
+      medium: ranked.filter((r) => r.bucket === "medium").length,
+      all: ranked.length,
+      shortlisted: shortlistedCount,
+    },
     customer: {
       firstName: clientBiodata.firstName,
       stage: customer.stage as Stage,

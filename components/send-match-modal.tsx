@@ -47,7 +47,11 @@ export function SendMatchModal({
     fetch("/api/ai/intro-email", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ customerId, candidateId: candidate.candidate.id }),
+      body: JSON.stringify({
+        customerId,
+        candidateId: candidate.candidate.id,
+        useExisting: candidate.alreadySent,
+      }),
     })
       .then((r) => r.json())
       .then((d) => {
@@ -55,7 +59,7 @@ export function SendMatchModal({
         if (d?.subject && d?.body) {
           setSubject(d.subject);
           setBody(d.body);
-          setSource(d.source ?? "fallback");
+          setSource(d.source === "existing" ? "fallback" : (d.source ?? "fallback"));
         }
       })
       .catch(() => {})
@@ -139,7 +143,7 @@ export function SendMatchModal({
           </div>
 
           <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-mute">
-            {source === "llm" ? "Drafted by the AI" : source === "fallback" ? "Written from template" : "Drafting..."}
+            {source === "llm" ? "Drafted by the AI" : source === "fallback" ? (candidate.alreadySent ? "Loaded from sent log" : "Written from template") : "Drafting..."}
           </div>
         </div>
 

@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: knotwise
+      POSTGRES_PASSWORD: knotwise
+      POSTGRES_DB: knotwise
+    ports:
+      - "5432:5432"
+    volumes:
+      - knotwise_pg:/var/lib/postgresql/data
+
+volumes:
+  knotwise_pg:

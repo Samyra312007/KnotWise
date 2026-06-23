@@ -1,9 +1,14 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
-import { getSession } from "@/lib/auth/session";
+import { requireApiSession, notFound, forbidden } from "@/lib/auth/api";
+import { canWriteCustomer } from "@/lib/access/customers";
 import type { Biodata } from "@/lib/types";
-import { rankMatches } from "@/lib/matching";
+import { rankMatchesForOrg } from "@/lib/matching/org-rank";
+import { requireActiveSubscription, canSendEmail } from "@/lib/billing/subscription";
+import { enqueueIntroEmail } from "@/lib/jobs/email-jobs";
+import { logAuditEvent } from "@/lib/audit";
+import { canWriteCustomers } from "@/lib/auth/roles";
 
 const schema = z.object({
   customerId: z.string().min(1),
@@ -13,10 +18,9 @@ const schema = z.object({
 });
 
 export async function POST(req: Request) {
-  const session = await getSession();
-  if (!session.matchmakerId) {
-    return NextResponse.json({ error: { code: "UNAUTHORIZED", message: "Sign in first." } }, { status: 401 });
-  }
+  const session = await requireApiSession();
+  if (session instanceof NextResponse) return session;
+  if (!canWriteCustomers(session.role)) return forbidden();
 
   let parsed;
   try {
@@ -25,20 +29,33 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: { code: "INVALID_INPUT", message: "Provide all fields." } }, { status: 400 });
   }
 
+  const subCheck = await requireActiveSubscription(session.orgId);
+  if (!subCheck.ok) {
+    return NextResponse.json({ error: { code: "SUBSCRIPTION", message: subCheck.reason } }, { status: 402 });
+  }
+
+  const canWrite = await canWriteCustomer(
+    parsed.customerId,
+    session.matchmakerId,
+    session.orgId,
+    session.role
+  );
+  if (!canWrite) return notFound("Customer not found.");
+
   const customer = await prisma.customer.findFirst({
-    where: { id: parsed.customerId, matchmakerId: session.matchmakerId },
+    where: { id: parsed.customerId, orgId: session.orgId },
+    include: { clientAccount: true },
   });
-  if (!customer) {
-    return NextResponse.json({ error: { code: "NOT_FOUND", message: "Customer not found." } }, { status: 404 });
-  }
-  const candidate = await prisma.poolProfile.findUnique({ where: { id: parsed.candidateId } });
-  if (!candidate) {
-    return NextResponse.json({ error: { code: "NOT_FOUND", message: "Candidate not found." } }, { status: 404 });
-  }
+  if (!customer) return notFound("Customer not found.");
+
+  const candidate = await prisma.poolProfile.findFirst({
+    where: { id: parsed.candidateId, orgId: session.orgId },
+  });
+  if (!candidate) return notFound("Candidate not found.");
 
   const clientBio = JSON.parse(customer.biodata) as Biodata;
   const candBio = JSON.parse(candidate.biodata) as Biodata;
-  const ranked = rankMatches(clientBio, [{ id: candidate.id, biodata: candBio }]);
+  const ranked = await rankMatchesForOrg(session.orgId, clientBio, [{ id: candidate.id, biodata: candBio }]);
   const m = ranked[0];
 
   const suggestion = await prisma.matchSuggestion.upsert({
@@ -57,6 +74,7 @@ export async function POST(req: Request) {
       explanation: "",
       breakdown: JSON.stringify(m?.breakdown ?? {}),
       status: "sent",
+      modelAdjusted: m?.modelAdjusted ?? false,
     },
   });
 
@@ -66,8 +84,25 @@ export async function POST(req: Request) {
       matchmakerId: session.matchmakerId,
       subject: parsed.subject,
       body: parsed.body,
+      deliveryStatus: "queued",
+      recipientEmail: customer.clientAccount?.email ?? clientBio.email,
     },
   });
+
+  const canEmail = await canSendEmail(session.orgId);
+  if (canEmail && (customer.clientAccount?.email || clientBio.email)) {
+    await enqueueIntroEmail({
+      emailLogId: email.id,
+      to: customer.clientAccount?.email ?? clientBio.email,
+      subject: parsed.subject,
+      body: parsed.body,
+    });
+  } else if (!canEmail) {
+    await prisma.emailLog.update({
+      where: { id: email.id },
+      data: { deliveryStatus: "failed", errorMessage: "Monthly email limit reached." },
+    });
+  }
 
   let stageBumped = false;
   if (customer.stage === "Active") {
@@ -78,10 +113,21 @@ export async function POST(req: Request) {
     stageBumped = true;
   }
 
+  await logAuditEvent({
+    orgId: session.orgId,
+    actorId: session.matchmakerId,
+    actorType: "matchmaker",
+    action: "match.sent",
+    entityType: "customer",
+    entityId: customer.id,
+    metadata: { candidateId: candidate.id, emailLogId: email.id },
+  });
+
   return NextResponse.json({
     ok: true,
     suggestionId: suggestion.id,
     emailId: email.id,
     stageBumped,
+    deliveryStatus: email.deliveryStatus,
   });
 }

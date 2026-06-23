@@ -1,8 +1,8 @@
 import type { Biodata, ScoredCandidate } from "@/lib/types";
 import { passesHardFilters } from "./hard-filters";
-import { maleStrategy } from "./male-strategy";
-import { femaleStrategy } from "./female-strategy";
-import { bucketFor, type StrategyResult } from "./types";
+import { maleStrategy, maleWeights } from "./male-strategy";
+import { femaleStrategy, femaleWeights } from "./female-strategy";
+import { bucketFor, type SubScores, type Weights } from "./types";
 
 export { bucketFor };
 
@@ -18,14 +18,42 @@ export interface RankedMatch {
   bucket: ReturnType<typeof bucketFor>;
   breakdown: Record<string, number>;
   contributions: Record<string, number>;
+  modelAdjusted?: boolean;
 }
 
-export function rankMatches(client: Biodata, pool: PoolEntry[]): RankedMatch[] {
-  const ranker = client.gender === "male" ? maleStrategy : femaleStrategy;
+function scoreWithWeights(
+  breakdown: SubScores,
+  weights: Weights
+): { total: number; breakdown: SubScores; contributions: Record<string, number> } {
+  const contributions = {} as Record<string, number>;
+  let total = 0;
+  (Object.keys(breakdown) as Array<keyof SubScores>).forEach((k) => {
+    const weight = weights[k] ?? 0;
+    const sub = breakdown[k];
+    const contribution = weight * sub;
+    contributions[k] = contribution;
+    total += contribution;
+  });
+  return { total: Math.round(total), breakdown, contributions };
+}
+
+export function rankMatches(
+  client: Biodata,
+  pool: PoolEntry[],
+  customWeights?: Partial<Weights>
+): RankedMatch[] {
+  const baseStrategy = client.gender === "male" ? maleStrategy : femaleStrategy;
+  const weights = customWeights
+    ? { ...baseStrategy.weights, ...customWeights }
+    : baseStrategy.weights;
   return pool
     .filter((entry) => passesHardFilters(client, entry.biodata).pass)
     .map((entry) => {
-      const result: StrategyResult = ranker.score(client, entry.biodata);
+      const raw = baseStrategy.score(client, entry.biodata);
+      const result =
+        customWeights && Object.keys(customWeights).length > 0
+          ? scoreWithWeights(raw.breakdown, weights as Weights)
+          : raw;
       return {
         id: entry.id,
         biodata: entry.biodata,
@@ -37,6 +65,8 @@ export function rankMatches(client: Biodata, pool: PoolEntry[]): RankedMatch[] {
     })
     .sort((a, b) => b.score - a.score);
 }
+
+export { maleWeights, femaleWeights };
 
 export function toScoredCandidate(
   m: RankedMatch,

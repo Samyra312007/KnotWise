@@ -21,6 +21,8 @@ interface SentItem {
   body: string;
   sentAt: string;
   candidateName: string;
+  deliveryStatus?: string;
+  status?: string;
 }
 
 export function NotesFeed({
@@ -192,6 +194,12 @@ export function NotesFeed({
                   <div className="text-[13px] text-ink-warm mt-2 line-clamp-1">
                     {s.subject}
                   </div>
+                  {s.deliveryStatus && (
+                    <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-mute mt-1">
+                      {s.deliveryStatus}
+                      {s.status && s.status !== "sent" ? ` · ${s.status}` : ""}
+                    </div>
+                  )}
                 </div>
               </button>
             ))}

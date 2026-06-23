@@ -114,6 +114,9 @@ export interface ScoredCandidate {
   breakdown: Record<string, number>;
   alreadySent: boolean;
   sentAt?: string;
+  lastEmail?: { subject: string; body: string; deliveryStatus: string };
+  modelAdjusted?: boolean;
+  shortlisted?: boolean;
 }
 
 export interface CustomerListItem {

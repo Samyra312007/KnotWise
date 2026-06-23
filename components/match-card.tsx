@@ -35,10 +35,23 @@ export interface MatchCardProps {
   match: ScoredCandidate;
   clientGender: "male" | "female";
   onSend: (m: ScoredCandidate) => void;
+  onViewProfile: (m: ScoredCandidate) => void;
   index?: number;
+  selectable?: boolean;
+  selected?: boolean;
+  onToggleSelect?: (id: string) => void;
 }
 
-export function MatchCard({ match, clientGender, onSend, index = 0 }: MatchCardProps) {
+export function MatchCard({
+  match,
+  clientGender,
+  onSend,
+  onViewProfile,
+  index = 0,
+  selectable,
+  selected,
+  onToggleSelect,
+}: MatchCardProps) {
   const [expanded, setExpanded] = React.useState(false);
   const weights = clientGender === "male" ? WEIGHT_MALE : WEIGHT_FEMALE;
   const age = ageFromDOB(match.candidate.dateOfBirth);
@@ -76,6 +89,11 @@ export function MatchCard({ match, clientGender, onSend, index = 0 }: MatchCardP
         <p className="mt-3 text-body-l italic text-ink-warm leading-relaxed line-clamp-2">
           {match.explanation}
         </p>
+        {match.modelAdjusted && (
+          <div className="mt-2 font-mono text-[10px] uppercase tracking-[0.18em] text-indigo">
+            Rank adjusted by learnings
+          </div>
+        )}
 
         <button
           type="button"
@@ -110,6 +128,15 @@ export function MatchCard({ match, clientGender, onSend, index = 0 }: MatchCardP
       </div>
 
       <div className="flex flex-row md:flex-col items-center md:items-end gap-6">
+        {selectable && (
+          <input
+            type="checkbox"
+            checked={selected}
+            onChange={() => onToggleSelect?.(match.candidate.id)}
+            className="size-4 accent-vermilion"
+            aria-label={`Select ${match.candidate.firstName}`}
+          />
+        )}
         <CompatibilitySigil score={match.score} size="lg" />
         <div className="flex flex-col gap-2 w-full md:w-auto md:min-w-[150px]">
           {match.alreadySent ? (
@@ -124,7 +151,7 @@ export function MatchCard({ match, clientGender, onSend, index = 0 }: MatchCardP
             </>
           ) : (
             <>
-              <Button variant="quiet" size="compact">
+              <Button variant="quiet" size="compact" onClick={() => onViewProfile(match)}>
                 View profile
               </Button>
               <Button variant="accent" size="compact" onClick={() => onSend(match)}>

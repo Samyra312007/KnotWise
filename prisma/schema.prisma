@@ -3,8 +3,40 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+model Organization {
+  id               String   @id @default(cuid())
+  name             String
+  slug             String   @unique
+  stripeCustomerId String?
+  createdAt        DateTime @default(now())
+
+  members           Membership[]
+  customers         Customer[]
+  poolProfiles      PoolProfile[]
+  subscriptions     Subscription[]
+  threads           Thread[]
+  verificationCases VerificationCase[]
+  assets            Asset[]
+  matchingConfig    OrgMatchingConfig?
+  modelVersions     ModelVersion[]
+  auditEvents       AuditEvent[]
+}
+
+model Membership {
+  id           String @id @default(cuid())
+  orgId        String
+  matchmakerId String
+  role         String
+
+  org        Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  matchmaker Matchmaker  @relation(fields: [matchmakerId], references: [id], onDelete: Cascade)
+
+  @@unique([orgId, matchmakerId])
+  @@index([matchmakerId])
 }
 
 model Matchmaker {
@@ -14,15 +46,21 @@ model Matchmaker {
   fullName     String
   createdAt    DateTime @default(now())
 
-  customers Customer[]
-  notes     Note[]
-  emails    EmailLog[]
+  memberships   Membership[]
+  assignments   CustomerAssignment[]
+  collaborators CustomerCollaborator[]
+  notes         Note[]
+  emails        EmailLog[]
+  notifications Notification[]
+  handoffsFrom  Handoff[]          @relation("HandoffFrom")
+  handoffsTo    Handoff[]          @relation("HandoffTo")
+  mobileTokens MobileAuthToken[]
 }
 
 model Customer {
-  id           String     @id @default(cuid())
-  matchmakerId String
-  matchmaker   Matchmaker @relation(fields: [matchmakerId], references: [id])
+  id    String       @id @default(cuid())
+  orgId String
+  org   Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
 
   firstName     String
   lastName      String
@@ -32,23 +70,58 @@ model Customer {
   country       String
   maritalStatus String
 
-  stage    String  @default("Onboarding")
-  biodata  String
-  photoUrl String?
+  stage      String    @default("Onboarding")
+  biodata    String
+  photoUrl   String?
+  verifiedAt DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  notes       Note[]
-  suggestions MatchSuggestion[]
+  assignments           CustomerAssignment[]
+  collaborators         CustomerCollaborator[]
+  notes                 Note[]
+  suggestions           MatchSuggestion[]
+  clientAccount         ClientAccount?
+  clientBilling         ClientBilling?
+  handoffs              Handoff[]
+  thread                Thread?
+  profileChangeRequests ProfileChangeRequest[]
 
-  @@index([matchmakerId])
+  @@index([orgId])
   @@index([stage])
   @@index([gender])
 }
 
+model CustomerAssignment {
+  id           String @id @default(cuid())
+  customerId   String
+  matchmakerId String
+  role         String
+
+  customer   Customer   @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  matchmaker Matchmaker @relation(fields: [matchmakerId], references: [id], onDelete: Cascade)
+
+  @@unique([customerId, matchmakerId])
+}
+
+model CustomerCollaborator {
+  id           String @id @default(cuid())
+  customerId   String
+  matchmakerId String
+  access       String
+
+  customer   Customer   @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  matchmaker Matchmaker @relation(fields: [matchmakerId], references: [id], onDelete: Cascade)
+
+  @@unique([customerId, matchmakerId])
+}
+
 model PoolProfile {
-  id          String   @id @default(cuid())
+  id    String       @id @default(cuid())
+  orgId String
+  org   Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
   firstName   String
   lastName    String
   gender      String
@@ -57,9 +130,11 @@ model PoolProfile {
   country     String
   biodata     String
   photoUrl    String?
+  verifiedAt  DateTime?
 
   suggestions MatchSuggestion[]
 
+  @@index([orgId])
   @@index([gender])
   @@index([city])
 }
@@ -69,14 +144,19 @@ model MatchSuggestion {
   customerId    String
   poolProfileId String
 
-  customer    Customer    @relation(fields: [customerId], references: [id])
-  poolProfile PoolProfile @relation(fields: [poolProfileId], references: [id])
+  customer    Customer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  poolProfile PoolProfile @relation(fields: [poolProfileId], references: [id], onDelete: Cascade)
 
-  score       Int
-  bucket      String
-  explanation String
-  breakdown   String
-  status      String @default("shortlisted")
+  score            Int
+  bucket           String
+  explanation      String
+  breakdown        String
+  status           String    @default("shortlisted")
+  shortlistedAt    DateTime?
+  shortlistedBy    String?
+  feedbackReason   String?
+  feedbackAt       DateTime?
+  modelAdjusted    Boolean   @default(false)
 
   createdAt DateTime @default(now())
 
@@ -91,11 +171,12 @@ model Note {
   customerId   String
   matchmakerId String
   body         String
+  mentions     String @default("[]")
 
   createdAt DateTime @default(now())
 
-  customer   Customer   @relation(fields: [customerId], references: [id])
-  matchmaker Matchmaker @relation(fields: [matchmakerId], references: [id])
+  customer   Customer   @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  matchmaker Matchmaker @relation(fields: [matchmakerId], references: [id], onDelete: Cascade)
 
   @@index([customerId, createdAt])
 }
@@ -105,12 +186,240 @@ model EmailLog {
   matchSuggestionId String
   matchmakerId      String
 
-  subject String
-  body    String
-  sentAt  DateTime @default(now())
+  subject        String
+  body           String
+  sentAt         DateTime @default(now())
+  deliveryStatus String   @default("queued")
+  providerId     String?
+  deliveredAt    DateTime?
+  errorMessage   String?
+  recipientEmail String?
 
-  matchSuggestion MatchSuggestion @relation(fields: [matchSuggestionId], references: [id])
-  matchmaker      Matchmaker      @relation(fields: [matchmakerId], references: [id])
+  matchSuggestion MatchSuggestion @relation(fields: [matchSuggestionId], references: [id], onDelete: Cascade)
+  matchmaker      Matchmaker      @relation(fields: [matchmakerId], references: [id], onDelete: Cascade)
 
   @@index([matchmakerId, sentAt])
+}
+
+model ClientAccount {
+  id              String    @id @default(cuid())
+  customerId      String    @unique
+  email           String    @unique
+  phone           String?
+  passwordHash    String?
+  emailVerifiedAt DateTime?
+  lastLoginAt     DateTime?
+  notifyEmail     Boolean   @default(true)
+
+  customer   Customer         @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  magicLinks MagicLinkToken[]
+}
+
+model MagicLinkToken {
+  id        String    @id @default(cuid())
+  clientId  String
+  tokenHash String
+  expiresAt DateTime
+  usedAt    DateTime?
+
+  client ClientAccount @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([tokenHash])
+}
+
+model Subscription {
+  id                   String   @id @default(cuid())
+  orgId                String   @unique
+  stripeSubscriptionId String   @unique
+  stripePriceId        String
+  status               String
+  currentPeriodEnd     DateTime
+  seatCount            Int      @default(3)
+
+  org Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+}
+
+model ClientBilling {
+  id               String @id @default(cuid())
+  customerId       String @unique
+  stripeCustomerId String?
+  plan             String @default("included")
+  status           String @default("active")
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+}
+
+model Handoff {
+  id               String    @id @default(cuid())
+  customerId       String
+  fromMatchmakerId String
+  toMatchmakerId   String
+  note             String
+  status           String    @default("pending")
+  createdAt        DateTime  @default(now())
+  resolvedAt       DateTime?
+
+  customer       Customer   @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  fromMatchmaker Matchmaker @relation("HandoffFrom", fields: [fromMatchmakerId], references: [id])
+  toMatchmaker   Matchmaker @relation("HandoffTo", fields: [toMatchmakerId], references: [id])
+
+  @@index([toMatchmakerId, status])
+}
+
+model Thread {
+  id         String @id @default(cuid())
+  customerId String @unique
+  orgId      String
+
+  customer     Customer            @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  org          Organization        @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  messages     ThreadMessage[]
+  participants ThreadParticipant[]
+}
+
+model ThreadMessage {
+  id         String   @id @default(cuid())
+  threadId   String
+  authorId   String
+  authorType String
+  body       String
+  mentions   String   @default("[]")
+  createdAt  DateTime @default(now())
+
+  thread Thread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+
+  @@index([threadId, createdAt])
+}
+
+model ThreadParticipant {
+  id         String    @id @default(cuid())
+  threadId   String
+  userId     String
+  userType   String
+  lastReadAt DateTime?
+
+  thread Thread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+
+  @@unique([threadId, userId, userType])
+}
+
+model Notification {
+  id           String    @id @default(cuid())
+  matchmakerId String
+  type         String
+  payload      String
+  readAt       DateTime?
+  createdAt    DateTime  @default(now())
+
+  matchmaker Matchmaker @relation(fields: [matchmakerId], references: [id], onDelete: Cascade)
+
+  @@index([matchmakerId, readAt])
+}
+
+model VerificationCase {
+  id          String    @id @default(cuid())
+  orgId       String
+  entityType  String
+  entityId    String
+  status      String    @default("pending")
+  checklist   String    @default("{}")
+  reviewerId  String?
+  notes       String?
+  submittedAt DateTime  @default(now())
+  resolvedAt  DateTime?
+
+  org       Organization           @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  documents VerificationDocument[]
+
+  @@index([orgId, status])
+  @@index([entityType, entityId])
+}
+
+model VerificationDocument {
+  id         String   @id @default(cuid())
+  caseId     String
+  kind       String
+  fileUrl    String
+  uploadedBy String
+  createdAt  DateTime @default(now())
+
+  verificationCase VerificationCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
+}
+
+model Asset {
+  id         String   @id @default(cuid())
+  orgId      String
+  entityType String
+  entityId   String
+  url        String
+  key        String
+  mimeType   String
+  sizeBytes  Int
+  uploadedBy String
+  createdAt  DateTime @default(now())
+
+  org Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@index([entityType, entityId])
+}
+
+model OrgMatchingConfig {
+  id         String   @id @default(cuid())
+  orgId      String   @unique
+  weightsJson String
+  mlEnabled  Boolean  @default(false)
+  updatedAt  DateTime @updatedAt
+
+  org Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+}
+
+model ModelVersion {
+  id        String   @id @default(cuid())
+  orgId     String
+  version   Int
+  metrics   String
+  artifactKey String?
+  createdAt DateTime @default(now())
+
+  org Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@index([orgId, version])
+}
+
+model AuditEvent {
+  id         String   @id @default(cuid())
+  orgId      String
+  actorId    String
+  actorType  String
+  action     String
+  entityType String
+  entityId   String
+  metadata   String   @default("{}")
+  createdAt  DateTime @default(now())
+
+  org Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@index([orgId, createdAt])
+}
+
+model ProfileChangeRequest {
+  id         String   @id @default(cuid())
+  customerId String
+  body       String
+  status     String   @default("pending")
+  createdAt  DateTime @default(now())
+  resolvedAt DateTime?
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+}
+
+model MobileAuthToken {
+  id           String    @id @default(cuid())
+  matchmakerId String
+  tokenHash    String    @unique
+  expiresAt    DateTime
+  createdAt    DateTime  @default(now())
+  revokedAt    DateTime?
+
+  matchmaker Matchmaker @relation(fields: [matchmakerId], references: [id], onDelete: Cascade)
 }

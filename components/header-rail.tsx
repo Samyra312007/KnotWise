@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Knot } from "@/components/ui/knot";
+import { NotificationsBell, OpsNavLink } from "@/components/notifications-bell";
 
 export interface Crumb {
   label: string;
@@ -13,10 +14,11 @@ export interface Crumb {
 
 export interface HeaderRailProps {
   matchmakerName: string;
+  role?: string;
   crumbs?: Crumb[];
 }
 
-export function HeaderRail({ matchmakerName, crumbs = [] }: HeaderRailProps) {
+export function HeaderRail({ matchmakerName, role, crumbs = [] }: HeaderRailProps) {
   const router = useRouter();
   const [scrolled, setScrolled] = React.useState(false);
 
@@ -80,6 +82,14 @@ export function HeaderRail({ matchmakerName, crumbs = [] }: HeaderRailProps) {
         </nav>
 
         <div className="ml-auto flex items-center gap-6">
+          <OpsNavLink role={role} />
+          <Link
+            href="/settings/billing"
+            className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-mute hover:text-ink-warm hidden md:inline"
+          >
+            Billing
+          </Link>
+          <NotificationsBell />
           <span className="font-sans font-medium text-[14px] text-ink hidden md:inline">
             {matchmakerName}
           </span>

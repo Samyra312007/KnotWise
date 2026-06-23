@@ -2,18 +2,24 @@ import { notFound } from "next/navigation";
 import { format } from "date-fns";
 import { prisma } from "@/lib/db";
 import { requireSession } from "@/lib/auth/session";
+import { getCustomerAccessFilter } from "@/lib/access/customers";
 import type { Biodata, Stage } from "@/lib/types";
 import { ageFromDOB } from "@/lib/types";
 import { CustomerDetail } from "./customer-detail";
 
-export default async function CustomerDetailPage(
-  { params }: { params: Promise<{ id: string }> }
-) {
+export default async function CustomerDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const session = await requireSession();
   const { id } = await params;
 
   const customer = await prisma.customer.findFirst({
-    where: { id, matchmakerId: session.matchmakerId },
+    where: {
+      id,
+      ...(await getCustomerAccessFilter(session.matchmakerId, session.orgId, session.role)),
+    },
     include: {
       notes: {
         orderBy: { createdAt: "desc" },
@@ -36,6 +42,7 @@ export default async function CustomerDetailPage(
       biodata={biodata}
       photoUrl={customer.photoUrl ?? undefined}
       matchmakerName={session.fullName}
+      verifiedAt={customer.verifiedAt?.toISOString() ?? null}
       marginalia={customer.notes.map((n) => ({
         id: n.id,
         body: n.body,

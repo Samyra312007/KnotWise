@@ -1,13 +1,21 @@
 import { format } from "date-fns";
 import { prisma } from "@/lib/db";
 import { requireSession } from "@/lib/auth/session";
+import { getCustomerAccessFilter } from "@/lib/access/customers";
 import { ageFromDOB, type CustomerListItem, type MaritalStatus, type Stage } from "@/lib/types";
 import { greetingByHour } from "@/lib/utils";
 import { Manifest } from "@/components/manifest";
+import { isOpsOrOwner } from "@/lib/auth/roles";
 
-async function getCustomers(matchmakerId: string): Promise<CustomerListItem[]> {
+import type { MembershipRole } from "@/lib/auth/roles";
+
+async function getCustomers(
+  matchmakerId: string,
+  orgId: string,
+  role: MembershipRole
+): Promise<CustomerListItem[]> {
   const customers = await prisma.customer.findMany({
-    where: { matchmakerId },
+    where: await getCustomerAccessFilter(matchmakerId, orgId, role),
     orderBy: { updatedAt: "desc" },
     include: {
       notes: { select: { createdAt: true }, orderBy: { createdAt: "desc" }, take: 1 },
@@ -56,17 +64,19 @@ function pickContextLine(items: CustomerListItem[]): string {
 
 export default async function DashboardPage() {
   const session = await requireSession();
-  const items = await getCustomers(session.matchmakerId);
+  const items = await getCustomers(session.matchmakerId, session.orgId, session.role);
 
   const now = new Date();
   const dateLabel = format(now, "EEEE, d LLLL yyyy").toUpperCase();
   const greeting = greetingByHour(now.getHours());
   const firstName = session.fullName.split(" ")[0];
+  const opsView = isOpsOrOwner(session.role);
 
   return (
     <section className="py-16 md:py-24">
       <div className="font-mono text-[11px] uppercase tracking-[0.18em] text-ink-mute anim-reveal">
         {dateLabel} — {items.length} {items.length === 1 ? "customer" : "customers"} under review
+        {opsView ? " (ops view)" : ""}
       </div>
 
       <h1 className="font-display text-display-xl text-ink mt-3 anim-reveal anim-delay-1">

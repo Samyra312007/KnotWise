@@ -1,21 +1,15 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getSession } from "@/lib/auth/session";
+import { requireApiSession, notFound } from "@/lib/auth/api";
+import { canAccessCustomer } from "@/lib/access/customers";
 
 export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> }) {
-  const session = await getSession();
-  if (!session.matchmakerId) {
-    return NextResponse.json({ error: { code: "UNAUTHORIZED", message: "Sign in first." } }, { status: 401 });
-  }
+  const session = await requireApiSession();
+  if (session instanceof NextResponse) return session;
   const { id } = await ctx.params;
 
-  const customer = await prisma.customer.findFirst({
-    where: { id, matchmakerId: session.matchmakerId },
-    select: { id: true },
-  });
-  if (!customer) {
-    return NextResponse.json({ error: { code: "NOT_FOUND", message: "Not found." } }, { status: 404 });
-  }
+  const allowed = await canAccessCustomer(id, session.matchmakerId, session.orgId, session.role);
+  if (!allowed) return notFound("Not found.");
 
   const sent = await prisma.emailLog.findMany({
     where: {
@@ -24,7 +18,9 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
     orderBy: { sentAt: "desc" },
     include: {
       matchSuggestion: {
-        include: { poolProfile: { select: { firstName: true, lastName: true } } },
+        include: {
+          poolProfile: { select: { firstName: true, lastName: true } },
+        },
       },
     },
   });
@@ -35,7 +31,11 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
       subject: e.subject,
       body: e.body,
       sentAt: e.sentAt.toISOString(),
+      deliveryStatus: e.deliveryStatus,
       candidateName: `${e.matchSuggestion.poolProfile.firstName} ${e.matchSuggestion.poolProfile.lastName}`,
+      suggestionId: e.matchSuggestionId,
+      status: e.matchSuggestion.status,
+      feedbackReason: e.matchSuggestion.feedbackReason,
     })),
   });
 }

@@ -10,7 +10,7 @@ export default async function AppLayout({
 
   return (
     <div className="min-h-screen bg-paper text-ink">
-      <HeaderRail matchmakerName={session.fullName} />
+      <HeaderRail matchmakerName={session.fullName} role={session.role} />
       <main className="mx-auto px-6 lg:px-12 max-w-[var(--container-bureau)]">
         {children}
       </main>

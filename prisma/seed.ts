@@ -208,9 +208,9 @@ function generateBiodata(gender: Gender, opts: { ageMin?: number; ageMax?: numbe
 }
 
 const MATCHMAKERS = [
-  { username: "riya", fullName: "Riya Kapoor" },
-  { username: "arjun", fullName: "Arjun Mehta" },
-  { username: "ops", fullName: "Ops Desk" },
+  { username: "riya", fullName: "Riya Kapoor", role: "matchmaker" as const },
+  { username: "arjun", fullName: "Arjun Mehta", role: "matchmaker" as const },
+  { username: "ops", fullName: "Ops Desk", role: "ops" as const },
 ];
 
 const STAGES_FOR_CUSTOMERS: Stage[] = [
@@ -226,12 +226,38 @@ const STAGES_FOR_CUSTOMERS: Stage[] = [
 
 async function main() {
   console.log("Resetting database...");
+  await prisma.mobileAuthToken.deleteMany();
+  await prisma.profileChangeRequest.deleteMany();
+  await prisma.auditEvent.deleteMany();
+  await prisma.modelVersion.deleteMany();
+  await prisma.orgMatchingConfig.deleteMany();
+  await prisma.asset.deleteMany();
+  await prisma.verificationDocument.deleteMany();
+  await prisma.verificationCase.deleteMany();
+  await prisma.threadParticipant.deleteMany();
+  await prisma.threadMessage.deleteMany();
+  await prisma.thread.deleteMany();
+  await prisma.notification.deleteMany();
+  await prisma.handoff.deleteMany();
+  await prisma.magicLinkToken.deleteMany();
+  await prisma.clientAccount.deleteMany();
+  await prisma.clientBilling.deleteMany();
+  await prisma.subscription.deleteMany();
   await prisma.emailLog.deleteMany();
   await prisma.matchSuggestion.deleteMany();
   await prisma.note.deleteMany();
+  await prisma.customerCollaborator.deleteMany();
+  await prisma.customerAssignment.deleteMany();
   await prisma.customer.deleteMany();
   await prisma.poolProfile.deleteMany();
+  await prisma.membership.deleteMany();
   await prisma.matchmaker.deleteMany();
+  await prisma.organization.deleteMany();
+
+  console.log("Seeding organization...");
+  const org = await prisma.organization.create({
+    data: { name: "TDC Matchmaker Bureau", slug: "tdc" },
+  });
 
   console.log("Seeding matchmakers...");
   const passwordHash = await bcrypt.hash("password123", 10);
@@ -243,6 +269,27 @@ async function main() {
     )
   );
 
+  for (let i = 0; i < matchmakers.length; i++) {
+    await prisma.membership.create({
+      data: {
+        orgId: org.id,
+        matchmakerId: matchmakers[i].id,
+        role: MATCHMAKERS[i].role,
+      },
+    });
+  }
+
+  await prisma.subscription.create({
+    data: {
+      orgId: org.id,
+      stripeSubscriptionId: `seed_sub_${org.id}`,
+      stripePriceId: "seed_price",
+      status: "active",
+      currentPeriodEnd: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+      seatCount: 10,
+    },
+  });
+
   console.log("Generating 120 pool profiles (60 male / 60 female)...");
   const poolBiodata: Biodata[] = [];
   for (let i = 0; i < 60; i++) poolBiodata.push(generateBiodata("male"));
@@ -251,6 +298,7 @@ async function main() {
   for (const b of poolBiodata) {
     await prisma.poolProfile.create({
       data: {
+        orgId: org.id,
         firstName: b.firstName,
         lastName: b.lastName,
         gender: b.gender,
@@ -259,36 +307,52 @@ async function main() {
         country: b.country,
         biodata: JSON.stringify(b),
         photoUrl: b.photoUrl ?? null,
+        verifiedAt: new Date(),
       },
     });
   }
 
   console.log("Generating customers (8 per matchmaker)...");
-  const customerBiodata: Array<{ b: Biodata; matchmakerId: string; stage: Stage }> = [];
-  for (const mm of matchmakers) {
+  const mmRoles = [
+    { mm: matchmakers[0], role: "matchmaker" },
+    { mm: matchmakers[1], role: "matchmaker" },
+    { mm: matchmakers[2], role: "ops" },
+  ] as const;
+
+  for (const { mm } of mmRoles) {
     for (let i = 0; i < 8; i++) {
       const gender: Gender = i % 2 === 0 ? "female" : "male";
       const b = generateBiodata(gender);
-      customerBiodata.push({ b, matchmakerId: mm.id, stage: STAGES_FOR_CUSTOMERS[i] });
+      const stage = STAGES_FOR_CUSTOMERS[i];
+      const customer = await prisma.customer.create({
+        data: {
+          orgId: org.id,
+          firstName: b.firstName,
+          lastName: b.lastName,
+          gender: b.gender,
+          dateOfBirth: new Date(b.dateOfBirth),
+          city: b.city,
+          country: b.country,
+          maritalStatus: b.maritalStatus,
+          stage,
+          biodata: JSON.stringify(b),
+          photoUrl: b.photoUrl ?? null,
+          verifiedAt: stage === "Onboarding" ? null : new Date(),
+        },
+      });
+      await prisma.customerAssignment.create({
+        data: { customerId: customer.id, matchmakerId: mm.id, role: "primary" },
+      });
+      if (mm.username === "riya" && i === 0) {
+        await prisma.clientAccount.create({
+          data: {
+            customerId: customer.id,
+            email: b.email.toLowerCase(),
+            emailVerifiedAt: new Date(),
+          },
+        });
+      }
     }
-  }
-
-  for (const { b, matchmakerId, stage } of customerBiodata) {
-    await prisma.customer.create({
-      data: {
-        matchmakerId,
-        firstName: b.firstName,
-        lastName: b.lastName,
-        gender: b.gender,
-        dateOfBirth: new Date(b.dateOfBirth),
-        city: b.city,
-        country: b.country,
-        maritalStatus: b.maritalStatus,
-        stage,
-        biodata: JSON.stringify(b),
-        photoUrl: b.photoUrl ?? null,
-      },
-    });
   }
 
   console.log("Writing data/dummy-profiles.json...");
@@ -300,6 +364,7 @@ async function main() {
   );
 
   const counts = {
+    organizations: await prisma.organization.count(),
     matchmakers: await prisma.matchmaker.count(),
     customers: await prisma.customer.count(),
     poolProfiles: await prisma.poolProfile.count(),

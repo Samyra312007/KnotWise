@@ -8,6 +8,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BiodataCard } from "@/components/biodata-card";
 import { NotesFeed } from "@/components/notes-feed";
 import { StageDropdown } from "@/components/stage-dropdown";
+import { MessagesTab } from "@/components/messages-tab";
+import { HandoffPanel } from "@/components/handoff-panel";
+import { ClientInviteButton, PhotoUpload } from "@/components/client-actions";
 import { MatchesTab } from "./matches-tab";
 
 interface MarginaliaNote {
@@ -26,6 +29,7 @@ export function CustomerDetail({
   photoUrl,
   matchmakerName,
   marginalia,
+  verifiedAt,
 }: {
   id: string;
   stage: Stage;
@@ -34,6 +38,7 @@ export function CustomerDetail({
   photoUrl?: string;
   matchmakerName: string;
   marginalia: MarginaliaNote[];
+  verifiedAt?: string | null;
 }) {
   const [tab, setTab] = React.useState("biodata");
 
@@ -59,6 +64,9 @@ export function CustomerDetail({
           ) : (
             <div className="w-full max-w-[200px] aspect-[3/4] bg-paper-quiet border-r border-ink/24" />
           )}
+          <div className="mt-4">
+            <PhotoUpload entityType="customer" entityId={id} />
+          </div>
         </div>
 
         <div className="min-w-0 anim-reveal anim-delay-1">
@@ -72,6 +80,11 @@ export function CustomerDetail({
             <span aria-hidden className="text-ink-mute/60 mx-2">—</span>
             <span>{biodata.designation} at {biodata.currentCompany}</span>
           </div>
+          {!verifiedAt && (
+            <div className="mt-4 font-mono text-[10px] uppercase tracking-[0.18em] text-vermilion">
+              Awaiting verification
+            </div>
+          )}
           <div className="hairline mt-8" />
         </div>
 
@@ -80,6 +93,10 @@ export function CustomerDetail({
             Current stage
           </div>
           <StageDropdown customerId={id} initialStage={stage} />
+          <div className="mt-6 flex flex-col gap-2 items-start">
+            <ClientInviteButton customerId={id} />
+          </div>
+          <HandoffPanel customerId={id} />
 
           {marginalia.length > 0 && (
             <>
@@ -88,7 +105,7 @@ export function CustomerDetail({
               </div>
               <ul className="space-y-4 border-l border-vermilion/60 pl-4">
                 {marginalia.map((n) => (
-                  <li key={n.id} className="">
+                  <li key={n.id}>
                     <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-mute mb-1">
                       {n.date}
                     </div>
@@ -114,6 +131,7 @@ export function CustomerDetail({
           <TabsList>
             <TabsTrigger value="biodata">Biodata</TabsTrigger>
             <TabsTrigger value="matches">Suggested matches</TabsTrigger>
+            <TabsTrigger value="messages">Messages</TabsTrigger>
             <TabsTrigger value="notes">Notes &amp; history</TabsTrigger>
           </TabsList>
 
@@ -127,6 +145,10 @@ export function CustomerDetail({
               customerFirstName={biodata.firstName}
               clientGender={biodata.gender}
             />
+          </TabsContent>
+
+          <TabsContent value="messages" className="mt-12">
+            <MessagesTab customerId={id} />
           </TabsContent>
 
           <TabsContent value="notes" className="mt-12 pb-24">

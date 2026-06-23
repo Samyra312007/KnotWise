@@ -2,17 +2,20 @@
 
 import * as React from "react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 import { EmptyState } from "@/components/empty-state";
 import { MatchCard } from "@/components/match-card";
 import { SendMatchModal } from "@/components/send-match-modal";
+import { CandidateDrawer } from "@/components/candidate-drawer";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { ScoredCandidate, Gender } from "@/lib/types";
 
-type Bucket = "high" | "medium" | "all";
+type Bucket = "high" | "medium" | "all" | "shortlisted";
 
 interface MatchesResponse {
   items: ScoredCandidate[];
-  counts: { high: number; medium: number; all: number };
+  counts: { high: number; medium: number; all: number; shortlisted?: number };
   customer: { firstName: string; stage: string };
 }
 
@@ -20,6 +23,7 @@ const BUCKET_LABELS: Record<Bucket, string> = {
   high: "High Potential",
   medium: "Worth Considering",
   all: "All",
+  shortlisted: "Shortlisted",
 };
 
 export function MatchesTab({
@@ -35,13 +39,20 @@ export function MatchesTab({
   const [data, setData] = React.useState<MatchesResponse | null>(null);
   const [error, setError] = React.useState(false);
   const [sending, setSending] = React.useState<ScoredCandidate | null>(null);
+  const [viewProfile, setViewProfile] = React.useState<string | null>(null);
+  const [selected, setSelected] = React.useState<Set<string>>(new Set());
+  const [shortlisting, setShortlisting] = React.useState(false);
 
   const fetchMatches = React.useCallback(
     async (b: Bucket) => {
       setData(null);
       setError(false);
       try {
-        const res = await fetch(`/api/customers/${customerId}/matches?bucket=${b}&limit=12`);
+        const view = b === "shortlisted" ? "&view=shortlisted" : "";
+        const bucketParam = b === "shortlisted" ? "high" : b;
+        const res = await fetch(
+          `/api/customers/${customerId}/matches?bucket=${bucketParam}&limit=12${view}`
+        );
         if (!res.ok) throw new Error("load_failed");
         const json: MatchesResponse = await res.json();
         setData(json);
@@ -71,11 +82,43 @@ export function MatchesTab({
     );
   }
 
+  function toggleSelect(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  async function bulkShortlist(limit?: number, ids?: string[]) {
+    setShortlisting(true);
+    try {
+      const res = await fetch(`/api/customers/${customerId}/shortlist/bulk`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          bucket: bucket === "shortlisted" ? "high" : bucket,
+          limit: limit ?? 5,
+          candidateIds: ids,
+        }),
+      });
+      if (!res.ok) throw new Error("failed");
+      toast.success("Shortlist saved.");
+      setSelected(new Set());
+      if (bucket === "shortlisted") fetchMatches("shortlisted");
+    } catch {
+      toast.error("Could not shortlist.");
+    } finally {
+      setShortlisting(false);
+    }
+  }
+
   return (
     <div>
       <div className="flex items-baseline justify-between gap-6 flex-wrap">
-        <div className="flex items-baseline gap-8 border-b border-ink/12 flex-1">
-          {(["high", "medium", "all"] as Bucket[]).map((b) => {
+        <div className="flex items-baseline gap-8 border-b border-ink/12 flex-1 flex-wrap">
+          {(["high", "medium", "all", "shortlisted"] as Bucket[]).map((b) => {
             const active = bucket === b;
             return (
               <button
@@ -98,10 +141,32 @@ export function MatchesTab({
             );
           })}
         </div>
+        <div className="flex gap-2 flex-wrap">
+          <Button
+            variant="quiet"
+            size="compact"
+            loading={shortlisting}
+            onClick={() => bulkShortlist(5)}
+          >
+            Shortlist top 5
+          </Button>
+          {selected.size > 0 && (
+            <Button
+              variant="accent"
+              size="compact"
+              loading={shortlisting}
+              onClick={() => bulkShortlist(undefined, Array.from(selected))}
+            >
+              Shortlist selected ({selected.size})
+            </Button>
+          )}
+        </div>
         {data && (
-          <div className="font-mono text-[11px] uppercase tracking-[0.18em] text-ink-mute">
-            {data.items.length} of {data.counts[bucket]}{" "}
-            {bucket === "high" ? "in high potential" : bucket === "medium" ? "worth considering" : "ranked"}
+          <div className="font-mono text-[11px] uppercase tracking-[0.18em] text-ink-mute w-full md:w-auto">
+            {data.items.length} shown
+            {bucket !== "shortlisted" && data.counts[bucket] !== undefined
+              ? ` of ${data.counts[bucket]}`
+              : ""}
           </div>
         )}
       </div>
@@ -154,7 +219,11 @@ export function MatchesTab({
                 match={match}
                 clientGender={clientGender}
                 onSend={(m) => setSending(m)}
+                onViewProfile={(m) => setViewProfile(m.candidate.id)}
                 index={i}
+                selectable={bucket !== "shortlisted"}
+                selected={selected.has(match.candidate.id)}
+                onToggleSelect={toggleSelect}
               />
             ))}
             <div className="hairline" />
@@ -169,6 +238,12 @@ export function MatchesTab({
         customerFirstName={customerFirstName}
         candidate={sending}
         onSent={markSent}
+      />
+
+      <CandidateDrawer
+        candidateId={viewProfile}
+        open={!!viewProfile}
+        onClose={() => setViewProfile(null)}
       />
     </div>
   );
