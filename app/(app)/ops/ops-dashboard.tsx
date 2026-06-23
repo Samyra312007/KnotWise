@@ -19,11 +19,21 @@ function formatValue(value: unknown): string {
   return JSON.stringify(value);
 }
 
+type ReportItem = {
+  id: string;
+  targetType: string;
+  targetId: string;
+  reason: string;
+  createdAt: string;
+  reporter: { id: string; firstName: string; lastName: string; city: string };
+};
+
 export function OpsDashboard({ role }: { role: string }) {
   const [verification, setVerification] = React.useState<
     Array<{ id: string; entityType: string; entityId: string; status: string; submittedAt: string }>
   >([]);
   const [revisions, setRevisions] = React.useState<ProfileRevisionItem[]>([]);
+  const [reports, setReports] = React.useState<ReportItem[]>([]);
   const [ml, setMl] = React.useState<{ mlEnabled: boolean; bias: Array<{ religion: string; acceptanceRate: number; total: number }> } | null>(null);
 
   React.useEffect(() => {
@@ -33,6 +43,9 @@ export function OpsDashboard({ role }: { role: string }) {
     fetch("/api/profile-revisions?status=pending")
       .then((r) => r.json())
       .then((d) => setRevisions(d.items ?? []));
+    fetch("/api/trust/reports?status=open")
+      .then((r) => r.json())
+      .then((d) => setReports(d.items ?? []));
     fetch("/api/ml")
       .then((r) => r.json())
       .then(setMl);
@@ -64,6 +77,20 @@ export function OpsDashboard({ role }: { role: string }) {
     }
     toast.success(decision === "approved" ? "Change approved." : "Change rejected.");
     setRevisions((prev) => prev.filter((r) => r.id !== id));
+  }
+
+  async function reviewReport(id: string, status: "resolved" | "dismissed") {
+    const res = await fetch(`/api/trust/reports/${id}`, {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ status }),
+    });
+    if (!res.ok) {
+      toast.error("Review failed.");
+      return;
+    }
+    toast.success(status === "resolved" ? "Report resolved." : "Report dismissed.");
+    setReports((prev) => prev.filter((r) => r.id !== id));
   }
 
   async function tuneModel() {
@@ -134,6 +161,41 @@ export function OpsDashboard({ role }: { role: string }) {
                     </Button>
                     <Button variant="quiet" size="compact" onClick={() => reviewRevision(r.id, "rejected")}>
                       Reject
+                    </Button>
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      <div className="mt-16">
+        <h2 className="font-mono text-[11px] uppercase tracking-[0.18em] text-ink-mute mb-6">
+          Trust reports (48h SLA)
+        </h2>
+        {reports.length === 0 ? (
+          <p className="text-ink-mute italic">No open reports.</p>
+        ) : (
+          <ul className="space-y-4">
+            {reports.map((r) => (
+              <li key={r.id} className="border-t border-ink/12 pt-4">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <div className="text-ink">
+                      {r.reporter.firstName} {r.reporter.lastName} · {r.reporter.city}
+                    </div>
+                    <div className="font-mono text-[10px] text-ink-mute mt-1">
+                      {r.targetType} · {r.targetId}
+                    </div>
+                    <p className="mt-2 text-[13px] text-ink-warm">{r.reason}</p>
+                  </div>
+                  <div className="flex gap-2 shrink-0">
+                    <Button variant="accent" size="compact" onClick={() => reviewReport(r.id, "resolved")}>
+                      Resolve
+                    </Button>
+                    <Button variant="quiet" size="compact" onClick={() => reviewReport(r.id, "dismissed")}>
+                      Dismiss
                     </Button>
                   </div>
                 </div>

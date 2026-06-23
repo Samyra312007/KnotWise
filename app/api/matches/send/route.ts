@@ -10,12 +10,14 @@ import { enqueueIntroEmail } from "@/lib/jobs/email-jobs";
 import { logAuditEvent } from "@/lib/audit";
 import { canWriteCustomers } from "@/lib/auth/roles";
 import { createReciprocalIntroPair } from "@/lib/matching/mutual";
+import { isSameGotra, gotraConflictMessage } from "@/lib/trust/gotra";
 
 const schema = z.object({
   customerId: z.string().min(1),
   candidateId: z.string().min(1),
   subject: z.string().min(1).max(300),
   body: z.string().min(1).max(8000),
+  overrideSameGotra: z.boolean().optional(),
 });
 
 export async function POST(req: Request) {
@@ -56,6 +58,25 @@ export async function POST(req: Request) {
 
   const clientBio = JSON.parse(customer.biodata) as Biodata;
   const candBio = JSON.parse(candidate.biodata) as Biodata;
+
+  const orgConfig = await prisma.orgMatchingConfig.findUnique({ where: { orgId: session.orgId } });
+  const blockSameGotra = orgConfig?.blockSameGotra ?? true;
+  const sameGotra = isSameGotra(clientBio, candBio);
+
+  if (sameGotra && blockSameGotra && !parsed.overrideSameGotra) {
+    return NextResponse.json(
+      {
+        error: {
+          code: "SAME_GOTRA",
+          message: gotraConflictMessage(clientBio, candBio) ?? "Same gotra intro blocked.",
+        },
+        gotraWarning: gotraConflictMessage(clientBio, candBio),
+        canOverride: true,
+      },
+      { status: 409 }
+    );
+  }
+
   const ranked = await rankMatchesForOrg(session.orgId, clientBio, [{ id: candidate.id, biodata: candBio }]);
   const m = ranked[0];
 
@@ -141,5 +162,7 @@ export async function POST(req: Request) {
     emailId: email.id,
     stageBumped,
     deliveryStatus: email.deliveryStatus,
+    gotraWarning: sameGotra ? gotraConflictMessage(clientBio, candBio) : undefined,
+    gotraOverridden: sameGotra && parsed.overrideSameGotra ? true : undefined,
   });
 }

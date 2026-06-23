@@ -135,7 +135,7 @@ flowchart LR
 
 ---
 
-### P5 — Trust & verification prod | Spec
+### P5 — Trust & verification prod | Shipped
 
 | | |
 |---|---|

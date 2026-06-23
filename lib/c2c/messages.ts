@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db";
 import { logAuditEvent } from "@/lib/audit";
 import { isBlockedEitherWay } from "@/lib/c2c/blocks";
+import { sanitizeOrRejectMessage } from "@/lib/trust/content-filter";
 import { MAX_C2C_MESSAGE_LENGTH } from "@/lib/c2c/conversations";
 
 export async function listConversationMessages(input: {
@@ -69,6 +70,10 @@ export async function sendConversationMessage(input: {
   if (!text) throw new Error("EMPTY");
   if (text.length > MAX_C2C_MESSAGE_LENGTH) throw new Error("TOO_LONG");
 
+  const filtered = sanitizeOrRejectMessage(text);
+  if (!filtered.ok) throw new Error("CONTENT_BLOCKED");
+  const messageBody = filtered.text;
+
   const conversation = await prisma.conversation.findFirst({
     where: {
       id: input.conversationId,
@@ -94,7 +99,7 @@ export async function sendConversationMessage(input: {
     data: {
       conversationId: input.conversationId,
       senderId: input.customerId,
-      body: text,
+      body: messageBody,
     },
   });
 

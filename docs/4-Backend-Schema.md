@@ -185,6 +185,8 @@ model Block {
 
 Add `Customer.verificationTier`: `unverified | pending | verified | premium`.
 
+Migration: `20260623230000_trust_verification`
+
 ---
 
 ## 4.7 P7 — Push

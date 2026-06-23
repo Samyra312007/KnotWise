@@ -91,6 +91,12 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
         { status: 403 }
       );
     }
+    if (err.message === "CONTENT_BLOCKED") {
+      return NextResponse.json(
+        { error: { code: "CONTENT_BLOCKED", message: "Message contains language that is not allowed." } },
+        { status: 400 }
+      );
+    }
     if (err.message === "TOO_LONG") {
       return NextResponse.json({ error: { code: "INVALID_INPUT", message: "Message too long." } }, { status: 400 });
     }

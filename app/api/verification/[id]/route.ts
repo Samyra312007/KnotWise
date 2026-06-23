@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireApiSession, requireApiOps, notFound } from "@/lib/auth/api";
 import { z } from "zod";
+import { refreshCustomerVerificationTier } from "@/lib/trust/tier-sync";
 
 const reviewSchema = z.object({
   status: z.enum(["in_review", "verified", "rejected"]),
@@ -47,10 +48,15 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
 
   if (parsed.status === "verified") {
     if (row.entityType === "customer") {
+      const checklist = parsed.checklist ?? (JSON.parse(row.checklist) as Record<string, boolean>);
       await prisma.customer.update({
         where: { id: row.entityId },
-        data: { verifiedAt: new Date() },
+        data: {
+          verifiedAt: new Date(),
+          photoVerifiedAt: checklist.photo ? new Date() : undefined,
+        },
       });
+      await refreshCustomerVerificationTier(row.entityId);
     } else {
       await prisma.poolProfile.update({
         where: { id: row.entityId },

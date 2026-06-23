@@ -16,7 +16,9 @@ export async function rankMatchesForOrg(
     const parsed = JSON.parse(config.weightsJson) as { male?: Partial<import("./types").Weights>; female?: Partial<import("./types").Weights> };
     customWeights = client.gender === "male" ? parsed.male : parsed.female;
   }
-  let ranked = baseRankMatches(client, pool, customWeights);
+  let ranked = baseRankMatches(client, pool, customWeights, {
+    blockSameGotra: config?.blockSameGotra ?? true,
+  });
   if (config?.mlEnabled) {
     ranked = await applyMlRerank(orgId, ranked, client);
   }

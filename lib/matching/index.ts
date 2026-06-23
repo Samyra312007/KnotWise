@@ -1,5 +1,5 @@
 import type { Biodata, ScoredCandidate } from "@/lib/types";
-import { passesHardFilters } from "./hard-filters";
+import { passesHardFilters, type HardFilterOptions } from "./hard-filters";
 import { maleStrategy, maleWeights } from "./male-strategy";
 import { femaleStrategy, femaleWeights } from "./female-strategy";
 import { bucketFor, type SubScores, type Weights } from "./types";
@@ -40,14 +40,15 @@ function scoreWithWeights(
 export function rankMatches(
   client: Biodata,
   pool: PoolEntry[],
-  customWeights?: Partial<Weights>
+  customWeights?: Partial<Weights>,
+  filterOptions?: HardFilterOptions
 ): RankedMatch[] {
   const baseStrategy = client.gender === "male" ? maleStrategy : femaleStrategy;
   const weights = customWeights
     ? { ...baseStrategy.weights, ...customWeights }
     : baseStrategy.weights;
   return pool
-    .filter((entry) => passesHardFilters(client, entry.biodata).pass)
+    .filter((entry) => passesHardFilters(client, entry.biodata, filterOptions).pass)
     .map((entry) => {
       const raw = baseStrategy.score(client, entry.biodata);
       const result =

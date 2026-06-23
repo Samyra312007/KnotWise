@@ -30,7 +30,8 @@
 | Consumer P2 | Profile self-service | PRD §P2, Flow §II.8, Schema §P2 | Shipped |
 | Consumer P3 | Mutual intro machine | PRD §P3, Flow §II.2–3, Schema §P3 | Shipped |
 | Consumer P4 | C2C chat | PRD §P4, ADR 002 | Shipped |
-| Consumer P5–P16 | Real dating/matrimonial product | PRD §P5–P16, docs 8–17 | Spec only |
+| Consumer P5 | Trust & verification | PRD §P5, doc 9, ADR 003 | Shipped |
+| Consumer P6–P16 | Real dating/matrimonial product | PRD §P6–P16, docs 8–17 | Spec only |
 
 ---
 
@@ -113,12 +114,12 @@ Every remaining consumer-dating gap maps to a phase and primary doc.
 
 | Gap | Phase | Primary doc | Status |
 |-----|-------|-------------|--------|
-| Phone / email OTP at production quality | P5 | doc 9, ADR 003 | Spec |
-| Government ID / KYC verification | P5 | doc 9, Schema §P5 | Spec |
-| Photo authenticity checks | P5 | doc 9 | Spec |
-| Block, report, moderation tools | P5 | doc 9, Schema §P5 | Spec |
-| Content filtering for chat and profiles | P5 | doc 9 | Spec |
-| Gotra / same-gotra hard rules | P5, P12 | doc 9, doc 15 | Spec |
+| Phone / email OTP at production quality | P5 | doc 9, ADR 003 | Shipped |
+| Government ID / KYC verification | P5 | doc 9, Schema §P5 | Shipped |
+| Photo authenticity checks | P5 | doc 9 | Shipped (ops review) |
+| Block, report, moderation tools | P5 | doc 9, Schema §P5 | Shipped |
+| Content filtering for chat and profiles | P5 | doc 9 | Shipped |
+| Gotra / same-gotra hard rules | P5, P12 | doc 9, doc 15 | Shipped |
 
 ### Matching & intelligence
 
@@ -163,7 +164,7 @@ Every remaining consumer-dating gap maps to a phase and primary doc.
 |-----|-------|-------------|--------|
 | Multiple photos, albums, video intros | P2 | PRD §P2, Schema §P2 | Shipped (photos; video P2+) |
 | Profile completeness scoring and nudges | P1, P2 | PRD §P1–P2 | Shipped (P1) |
-| Verification badges visible to clients | P5 | doc 9, doc 6 §6.16 | Spec |
+| Verification badges visible to clients | P5 | doc 9, doc 6 §6.16 | Shipped |
 
 ### Ops & analytics
 

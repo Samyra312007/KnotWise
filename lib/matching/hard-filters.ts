@@ -1,11 +1,23 @@
 import type { Biodata } from "@/lib/types";
+import { isSameGotra } from "@/lib/trust/gotra";
 
 export interface FilterResult {
   pass: boolean;
   reason?: string;
 }
 
-export function passesHardFilters(client: Biodata, candidate: Biodata): FilterResult {
+export interface HardFilterOptions {
+  blockSameGotra?: boolean;
+}
+
+export function passesHardFilters(
+  client: Biodata,
+  candidate: Biodata,
+  options?: HardFilterOptions
+): FilterResult {
+  if (options?.blockSameGotra && isSameGotra(client, candidate)) {
+    return { pass: false, reason: "same-gotra" };
+  }
   if (client.gender === candidate.gender) {
     return { pass: false, reason: "same-gender" };
   }

@@ -137,7 +137,7 @@ List conversations for authenticated client.
 
 ---
 
-## 8.7 P5 — Trust (planned)
+## 8.7 P5 — Trust (shipped)
 
 ### `POST /api/trust/otp/send`
 

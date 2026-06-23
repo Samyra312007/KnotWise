@@ -31,6 +31,8 @@ export function C2cChatPanel({ conversationId }: { conversationId: string }) {
   const [messages, setMessages] = React.useState<ChatMessage[]>([]);
   const [body, setBody] = React.useState("");
   const [busy, setBusy] = React.useState(false);
+  const [reportReason, setReportReason] = React.useState("");
+  const [showReport, setShowReport] = React.useState(false);
   const bottomRef = React.useRef<HTMLDivElement>(null);
 
   const loadMessages = React.useCallback(() => {
@@ -88,6 +90,26 @@ export function C2cChatPanel({ conversationId }: { conversationId: string }) {
     }
   }
 
+  async function submitReport() {
+    if (!meta) return;
+    const res = await fetch("/api/trust/report", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        targetType: "customer",
+        targetId: meta.counterpart.id,
+        reason: reportReason.trim(),
+      }),
+    });
+    if (!res.ok) {
+      toast.error("Could not submit report.");
+      return;
+    }
+    toast.success("Report submitted. Our team will review within 48 hours.");
+    setReportReason("");
+    setShowReport(false);
+  }
+
   async function blockUser() {
     if (!meta) return;
     const res = await fetch("/api/c2c/block", {
@@ -121,13 +143,32 @@ export function C2cChatPanel({ conversationId }: { conversationId: string }) {
           </h1>
         </div>
         {!meta.blocked ? (
-          <Button variant="quiet" size="compact" onClick={blockUser}>
-            Block
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="quiet" size="compact" onClick={() => setShowReport((v) => !v)}>
+              Report
+            </Button>
+            <Button variant="quiet" size="compact" onClick={blockUser}>
+              Block
+            </Button>
+          </div>
         ) : (
           <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-vermilion">Blocked</span>
         )}
       </div>
+
+      {showReport ? (
+        <div className="mt-6 space-y-3 border border-ink/12 p-4">
+          <Textarea
+            value={reportReason}
+            onChange={(e) => setReportReason(e.target.value)}
+            placeholder="Describe the issue (min 10 characters)"
+            className="min-h-[80px]"
+          />
+          <Button variant="accent" size="compact" disabled={reportReason.trim().length < 10} onClick={submitReport}>
+            Submit report
+          </Button>
+        </div>
+      ) : null}
 
       <div className="mt-8 max-h-[420px] overflow-y-auto space-y-4 pr-2">
         {messages.length === 0 ? (

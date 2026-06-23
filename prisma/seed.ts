@@ -238,6 +238,8 @@ const STAGES_FOR_CUSTOMERS: Stage[] = [
 
 async function main() {
   console.log("Resetting database...");
+  await prisma.report.deleteMany();
+  await prisma.verificationAttempt.deleteMany();
   await prisma.block.deleteMany();
   await prisma.c2cMessage.deleteMany();
   await prisma.conversation.deleteMany();
@@ -304,6 +306,15 @@ async function main() {
       status: "active",
       currentPeriodEnd: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
       seatCount: 10,
+    },
+  });
+
+  await prisma.orgMatchingConfig.create({
+    data: {
+      orgId: org.id,
+      weightsJson: JSON.stringify({ male: {}, female: {} }),
+      mlEnabled: false,
+      blockSameGotra: true,
     },
   });
 

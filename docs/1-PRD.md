@@ -160,7 +160,7 @@ Each phase: **Problem → Stories → Goals / Non-goals → Acceptance → Metri
 
 **Metrics:** Verification pass rate; report resolution time.
 
-**Status:** Spec — [ADR 003](adr/003-otp-provider.md)
+**Status:** Shipped — [ADR 003](adr/003-otp-provider.md)
 
 ---
 

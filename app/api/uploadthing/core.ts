@@ -163,6 +163,30 @@ export const ourFileRouter = {
   }).onUploadComplete(async ({ metadata, file }) => {
     return { url: file.url, orgId: metadata.orgId };
   }),
+
+  clientIdDoc: f({
+    image: { maxFileSize: "8MB", maxFileCount: 1 },
+    pdf: { maxFileSize: "8MB", maxFileCount: 1 },
+  })
+    .input(z.object({ customerId: z.string().min(1) }))
+    .middleware(async ({ input }) => {
+      const session = await getClientSession();
+      if (!session.clientId || !session.customerId || session.userType !== "client") {
+        throw new UploadThingError("Unauthorized");
+      }
+      if (input.customerId !== session.customerId) {
+        throw new UploadThingError("Forbidden");
+      }
+      const customer = await prisma.customer.findUnique({
+        where: { id: session.customerId },
+        select: { orgId: true },
+      });
+      if (!customer) throw new UploadThingError("Not found");
+      return { orgId: customer.orgId, customerId: session.customerId, clientId: session.clientId };
+    })
+    .onUploadComplete(async ({ file }) => {
+      return { url: file.url };
+    }),
 } satisfies FileRouter;
 
 export type OurFileRouter = typeof ourFileRouter;
