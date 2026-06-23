@@ -6,6 +6,9 @@ import { format } from "date-fns";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { useC2cRealtime } from "@/lib/hooks/use-c2c-realtime";
+import { useRealtimeConfig } from "@/lib/hooks/use-realtime-config";
+import type { C2cRealtimeEvent } from "@/lib/realtime/events";
 
 type ChatMessage = {
   id: string;
@@ -34,6 +37,35 @@ export function C2cChatPanel({ conversationId }: { conversationId: string }) {
   const [reportReason, setReportReason] = React.useState("");
   const [showReport, setShowReport] = React.useState(false);
   const bottomRef = React.useRef<HTMLDivElement>(null);
+  const realtimeConfig = useRealtimeConfig();
+
+  const handleRealtimeEvent = React.useCallback(
+    (event: C2cRealtimeEvent) => {
+      if (!meta) return;
+      if (event.type === "message") {
+        setMessages((prev) => {
+          if (prev.some((m) => m.id === event.message.id)) return prev;
+          return [
+            ...prev,
+            {
+              id: event.message.id,
+              body: event.message.body,
+              mine: event.message.senderId !== meta.counterpart.id,
+              createdAt: event.message.createdAt,
+              readAt: event.message.readAt,
+            },
+          ];
+        });
+      }
+    },
+    [meta]
+  );
+
+  useC2cRealtime({
+    conversationId,
+    enabled: Boolean(meta) && realtimeConfig?.mode !== "poll",
+    onEvent: handleRealtimeEvent,
+  });
 
   const loadMessages = React.useCallback(() => {
     return Promise.all([
@@ -52,6 +84,7 @@ export function C2cChatPanel({ conversationId }: { conversationId: string }) {
   }, [loadMessages]);
 
   React.useEffect(() => {
+    if (realtimeConfig?.mode !== "poll") return;
     const timer = window.setInterval(() => {
       fetch(`/api/c2c/conversations/${conversationId}/messages`)
         .then((r) => r.json())
@@ -61,7 +94,7 @@ export function C2cChatPanel({ conversationId }: { conversationId: string }) {
         .catch(() => undefined);
     }, 4000);
     return () => window.clearInterval(timer);
-  }, [conversationId]);
+  }, [conversationId, realtimeConfig?.mode]);
 
   React.useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });

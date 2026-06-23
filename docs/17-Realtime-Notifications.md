@@ -14,8 +14,8 @@ Per [ADR 002](adr/002-c2c-chat.md):
 | Phase | C2C transport | Matchmaker thread |
 |-------|---------------|-------------------|
 | P4 MVP | SSE + REST poll | SSE (existing) |
-| P6 | WebSocket (Pusher/Ably) | SSE |
-| P6+ | Redis pub/sub fanout | Same |
+| P6 | WebSocket (Pusher) + Redis pub/sub | SSE + Pusher |
+| P6+ | Redis fanout across instances | Same |
 
 ```mermaid
 sequenceDiagram
@@ -88,9 +88,11 @@ Realtime C2C, push, SMS/email delivery, bounce handling.
 
 ## Acceptance criteria
 
-- [ ] C2C p95 delivery <2s at 1k concurrent (P6)
-- [ ] Push received on device within 10s
-- [ ] Bounce suppresses future sends
+- [x] C2C realtime delivery via Pusher or SSE (P6)
+- [x] Matchmaker thread SSE + optional Pusher (P6)
+- [ ] C2C p95 delivery <2s at 1k concurrent (load test P16)
+- [ ] Push received on device within 10s (P7)
+- [ ] Bounce suppresses future sends (P16)
 
 ## Open questions
 

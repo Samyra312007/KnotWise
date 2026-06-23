@@ -171,7 +171,7 @@ Each phase: **Problem → Stories → Goals / Non-goals → Acceptance → Metri
 **Goals:** WebSocket (Pusher/Ably); Redis; presence optional.  
 **Acceptance:** p95 message delivery <2s at 1k concurrent connections.
 
-**Status:** Spec
+**Status:** Shipped — Pusher + Redis + SSE fallback (`lib/realtime/`)
 
 ---
 

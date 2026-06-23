@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { logAuditEvent } from "@/lib/audit";
+import { dispatchC2cEvent, serializeC2cMessageEvent } from "@/lib/realtime/dispatch";
 import { isBlockedEitherWay } from "@/lib/c2c/blocks";
 import { sanitizeOrRejectMessage } from "@/lib/trust/content-filter";
 import { MAX_C2C_MESSAGE_LENGTH } from "@/lib/c2c/conversations";
@@ -112,6 +113,13 @@ export async function sendConversationMessage(input: {
     entityId: input.conversationId,
     metadata: { messageId: message.id, recipientId: counterpartId },
   });
+
+  await dispatchC2cEvent(
+    serializeC2cMessageEvent({
+      conversationId: input.conversationId,
+      message,
+    })
+  );
 
   return message;
 }

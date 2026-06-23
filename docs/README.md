@@ -31,7 +31,8 @@
 | Consumer P3 | Mutual intro machine | PRD §P3, Flow §II.2–3, Schema §P3 | Shipped |
 | Consumer P4 | C2C chat | PRD §P4, ADR 002 | Shipped |
 | Consumer P5 | Trust & verification | PRD §P5, doc 9, ADR 003 | Shipped |
-| Consumer P6–P16 | Real dating/matrimonial product | PRD §P6–P16, docs 8–17 | Spec only |
+| Consumer P6 | Realtime messaging | PRD §P6, doc 17, ADR 002 | Shipped |
+| Consumer P7–P16 | Real dating/matrimonial product | PRD §P7–P16, docs 8–17 | Spec only |
 
 ---
 
@@ -42,7 +43,12 @@
 | Matchmaker console + match engine | Shipped |
 | Post-MVP bureau (org/RBAC, email, billing hooks, ops, verification queue, matchmaker↔client chat, uploads) | Shipped |
 | P1 self-signup + onboarding wizard | Shipped (`app/portal/signup`, `app/api/client/onboarding`) |
-| P2–P16 consumer features | Spec only (this library) |
+| P2 profile self-service | Shipped (`app/portal/profile/edit`, ops profile queue) |
+| P3 mutual intro machine | Shipped (`app/portal/matches`, `MutualMatch`) |
+| P4 C2C chat | Shipped (`app/portal/chat`, `app/api/c2c/*`) |
+| P5 trust & verification | Shipped (`app/portal/trust`, MSG91 OTP, reports) |
+| P6 realtime messaging | Shipped (`lib/realtime/*`, Pusher + Redis + SSE) |
+| P7–P16 consumer features | Spec only (this library) |
 
 ---
 
@@ -152,7 +158,7 @@ Every remaining consumer-dating gap maps to a phase and primary doc.
 
 | Gap | Phase | Primary doc | Status |
 |-----|-------|-------------|--------|
-| True realtime messaging | P6 | doc 17, ADR 002 | Spec |
+| True realtime messaging | P6 | doc 17, ADR 002 | Shipped |
 | Production PostgreSQL hosting, backups, monitoring | P16 | doc 11 | Spec |
 | CDN for photos/videos | P16 | doc 11, TRD §2.10 | Spec |
 | Email/SMS at scale + bounce handling | P16 | doc 17 | Spec |

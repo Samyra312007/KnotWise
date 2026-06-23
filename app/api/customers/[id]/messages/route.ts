@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
+import { dispatchThreadEvent } from "@/lib/realtime/dispatch";
 import { requireApiSession, requireApiClientSession, notFound, forbidden } from "@/lib/auth/api";
 import { canAccessCustomer } from "@/lib/access/customers";
 
@@ -141,6 +142,17 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
       },
     });
 
+    await dispatchThreadEvent({
+      type: "thread_message",
+      threadId: thread.id,
+      message: {
+        id: msg.id,
+        authorType: msg.authorType,
+        body: msg.body,
+        createdAt: msg.createdAt.toISOString(),
+      },
+    });
+
     return NextResponse.json({
       message: {
         id: msg.id,
@@ -165,6 +177,17 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
       authorId: clientSession.clientId,
       authorType: "client",
       body: parsed.body,
+    },
+  });
+
+  await dispatchThreadEvent({
+    type: "thread_message",
+    threadId: thread.id,
+    message: {
+      id: msg.id,
+      authorType: msg.authorType,
+      body: msg.body,
+      createdAt: msg.createdAt.toISOString(),
     },
   });
 

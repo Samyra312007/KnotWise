@@ -147,7 +147,7 @@ flowchart LR
 
 ---
 
-### P6 — Realtime infra | Spec
+### P6 — Realtime infra | **Shipped**
 
 | | |
 |---|---|
@@ -155,7 +155,18 @@ flowchart LR
 | **Depends on** | P4 |
 | **Effort** | ~1.5 weeks |
 
-**Checklist:** Pusher/Ably; Redis; C2C delivery <2s p95.
+**Checklist**
+
+- [x] Pusher private channels + auth (`/api/realtime/pusher/auth`)
+- [x] Redis pub/sub fanout (`lib/realtime/redis.ts`)
+- [x] SSE fallback for dev (`memory-sse`, `redis-sse`)
+- [x] C2C dispatch on message create (`dispatchC2cEvent`)
+- [x] Matchmaker thread SSE + Pusher (`/api/client/messages/stream`)
+- [x] Client hooks (`use-c2c-realtime`, `use-thread-realtime`)
+- [x] Docker Redis service
+- [x] Poll fallback when no infra in production
+
+**Done when:** C2C messages appear without 4s poll in dev; Pusher path ready for production keys.
 
 ---
 

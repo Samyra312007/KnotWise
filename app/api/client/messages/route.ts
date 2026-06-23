@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireApiClientSession } from "@/lib/auth/api";
+import { dispatchThreadEvent } from "@/lib/realtime/dispatch";
+import { sanitizeOrRejectMessage } from "@/lib/trust/content-filter";
 
 export async function GET() {
   const session = await requireApiClientSession();
@@ -25,6 +27,7 @@ export async function GET() {
   });
 
   return NextResponse.json({
+    threadId: thread.id,
     messages: messages.map((m) => ({
       id: m.id,
       authorType: m.authorType,
@@ -39,8 +42,9 @@ export async function POST(req: Request) {
   if (session instanceof NextResponse) return session;
 
   const { body } = (await req.json()) as { body?: string };
-  if (!body?.trim()) {
-    return NextResponse.json({ error: { code: "INVALID_INPUT", message: "Write a message." } }, { status: 400 });
+  const filtered = sanitizeOrRejectMessage(body ?? "");
+  if (!filtered.ok) {
+    return NextResponse.json({ error: { code: "INVALID_INPUT", message: filtered.reason } }, { status: 400 });
   }
 
   const customer = await prisma.customer.findUnique({ where: { id: session.customerId } });
@@ -60,7 +64,18 @@ export async function POST(req: Request) {
       threadId: thread.id,
       authorId: session.clientId,
       authorType: "client",
-      body: body.trim(),
+      body: filtered.text,
+    },
+  });
+
+  await dispatchThreadEvent({
+    type: "thread_message",
+    threadId: thread.id,
+    message: {
+      id: msg.id,
+      authorType: msg.authorType,
+      body: msg.body,
+      createdAt: msg.createdAt.toISOString(),
     },
   });
 

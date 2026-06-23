@@ -153,7 +153,44 @@ List conversations for authenticated client.
 
 ---
 
-## 8.8 P9 — Discovery (planned)
+## 8.8 P6 — Realtime (shipped)
+
+### `GET /api/realtime/config`
+
+**Auth:** Public (no secrets)
+
+**Response:**
+
+```json
+{
+  "mode": "pusher" | "redis-sse" | "memory-sse" | "poll",
+  "pusher": { "key": "...", "cluster": "ap2" } | null
+}
+```
+
+Mode priority: Pusher (if all `PUSHER_*` + `NEXT_PUBLIC_PUSHER_KEY`) → Redis SSE → in-memory SSE (dev) → poll.
+
+### `POST /api/realtime/pusher/auth`
+
+**Auth:** Client session  
+**Body:** Pusher channel auth (`socket_id`, `channel_name`)  
+**Channels:** `private-c2c-{conversationId}`, `private-thread-{threadId}`
+
+### `GET /api/c2c/conversations/[id]/stream`
+
+**Auth:** Client session  
+**Response:** SSE stream of `C2cRealtimeEvent` (Redis or in-memory bus).
+
+### `GET /api/client/messages/stream`
+
+**Auth:** Client session  
+**Response:** SSE stream of `ThreadRealtimeEvent` for matchmaker thread.
+
+**Env:** `REDIS_URL`, `PUSHER_APP_ID`, `PUSHER_KEY`, `PUSHER_SECRET`, `PUSHER_CLUSTER`, `NEXT_PUBLIC_PUSHER_KEY`
+
+---
+
+## 8.9 P9 — Discovery (planned)
 
 ### `GET /api/client/discover?city=&ageMin=&cursor=`
 
@@ -165,7 +202,7 @@ Notifies assigned matchmaker.
 
 ---
 
-## 8.9 P10 — Family (planned)
+## 8.10 P10 — Family (planned)
 
 ### `POST /api/family/delegates/invite`
 
@@ -175,7 +212,7 @@ Notifies assigned matchmaker.
 
 ---
 
-## 8.10 Webhooks (shipped + planned)
+## 8.11 Webhooks (shipped + planned)
 
 | Path | Provider |
 |------|----------|

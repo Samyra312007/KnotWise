@@ -5,18 +5,53 @@ import { format } from "date-fns";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { useThreadRealtime } from "@/lib/hooks/use-thread-realtime";
+import { useRealtimeConfig } from "@/lib/hooks/use-realtime-config";
+
+type ThreadMessage = {
+  id: string;
+  authorType: string;
+  body: string;
+  createdAt: string;
+};
 
 export default function PortalMessagesPage() {
-  const [messages, setMessages] = React.useState<
-    Array<{ id: string; authorType: string; body: string; createdAt: string }>
-  >([]);
+  const [threadId, setThreadId] = React.useState<string | null>(null);
+  const [messages, setMessages] = React.useState<ThreadMessage[]>([]);
   const [body, setBody] = React.useState("");
+  const realtimeConfig = useRealtimeConfig();
 
   React.useEffect(() => {
     fetch("/api/client/messages")
       .then((r) => r.json())
-      .then((d) => setMessages(d.messages ?? []));
+      .then((d) => {
+        setThreadId(d.threadId ?? null);
+        setMessages(d.messages ?? []);
+      });
   }, []);
+
+  const appendMessage = React.useCallback((message: ThreadMessage) => {
+    setMessages((prev) => (prev.some((m) => m.id === message.id) ? prev : [...prev, message]));
+  }, []);
+
+  useThreadRealtime({
+    threadId,
+    enabled: Boolean(threadId) && realtimeConfig?.mode !== "poll",
+    onMessage: appendMessage,
+  });
+
+  React.useEffect(() => {
+    if (realtimeConfig?.mode !== "poll") return;
+    const timer = window.setInterval(() => {
+      fetch("/api/client/messages")
+        .then((r) => r.json())
+        .then((d) => {
+          if (d.messages) setMessages(d.messages);
+        })
+        .catch(() => undefined);
+    }, 4000);
+    return () => window.clearInterval(timer);
+  }, [realtimeConfig?.mode]);
 
   async function send() {
     const res = await fetch("/api/client/messages", {
@@ -29,7 +64,7 @@ export default function PortalMessagesPage() {
       return;
     }
     const data = await res.json();
-    setMessages((prev) => [...prev, data.message]);
+    appendMessage(data.message);
     setBody("");
   }
 

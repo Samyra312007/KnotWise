@@ -11,5 +11,14 @@ services:
     volumes:
       - knotwise_pg:/var/lib/postgresql/data
 
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - knotwise_redis:/data
+
 volumes:
   knotwise_pg:
+  knotwise_redis:
