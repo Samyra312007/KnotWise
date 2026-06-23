@@ -1,0 +1,296 @@
+# 5. Implementation Plan
+
+**Project:** KnotWise  
+**Version:** 2.0  
+**Status:** Approved  
+**Supersedes:** [`archive/v1/5-Implementation-Plan.md`](archive/v1/5-Implementation-Plan.md)
+
+### Changelog v2.0
+
+- MVP phases 1–7 marked complete (archived detail)
+- Post-MVP phases 8–20 marked shipped
+- Consumer P1–P16 added with dependencies
+
+---
+
+## 5.1 MVP phases 1–7 (complete)
+
+See [`archive/v1/5-Implementation-Plan.md`](archive/v1/5-Implementation-Plan.md). All checkboxes complete.
+
+**Done when:** Demo script login → send match works. ✅
+
+---
+
+## 5.2 Post-MVP bureau phases 8–20 (shipped)
+
+| Phase | Goal | Status | Key paths |
+|-------|------|--------|-----------|
+| 8 | PostgreSQL + org model | ✅ | `prisma/migrations/20260623150000_post_mvp/` |
+| 9 | Client portal + magic link | ✅ | `app/portal/`, `app/api/client/auth/` |
+| 10 | Resend email + Inngest | ✅ | `lib/email/`, `lib/inngest/` |
+| 11 | Stripe billing hooks | ✅ | `lib/billing/`, `app/api/billing/` |
+| 12 | Handoffs, @mentions, ops | ✅ | `app/(app)/ops/`, `Handoff` |
+| 13 | Verification queue | ✅ | `VerificationCase` |
+| 14 | Matchmaker↔client chat | ✅ | `Thread`, `app/api/client/messages` |
+| 15 | UploadThing photos | ✅ | `app/api/uploadthing/` |
+| 16 | Bulk shortlist | ✅ | `app/api/customers/[id]/shortlist/bulk/` |
+| 17 | ML re-rank hooks | ✅ | `lib/matching/ml-rerank.ts` |
+| 18 | Expo mobile scaffold | ✅ | `apps/mobile/` |
+| 19 | MVP gap fixes | ✅ | `candidate-drawer.tsx`, ops dashboard |
+| 20 | Middleware + audit | ✅ | `middleware.ts`, `lib/audit.ts` |
+
+---
+
+## 5.3 Consumer phases P1–P16
+
+### Dependency graph
+
+```mermaid
+flowchart LR
+    P1 --> P2
+    P2 --> P3
+    P3 --> P4
+    P4 --> P6
+    P6 --> P7
+    P7 --> P8
+    P2 --> P5
+    P5 --> P15
+    P3 --> P9
+    P3 --> P10
+    P4 --> P13
+    P11 --> P15
+    P12 --> P14
+    P5 --> P16
+```
+
+---
+
+### P1 — Client onboarding v2 | **In Progress**
+
+| | |
+|---|---|
+| **Goal** | Self-signup + wizard + completeness |
+| **Depends on** | Post-MVP portal |
+| **Effort** | ~1 week |
+| **Demo** | Signup → verify → onboarding → portal home |
+
+**Checklist**
+
+- [x] `POST /api/client/auth/signup`
+- [x] `GET/PATCH /api/client/onboarding`
+- [x] `/portal/signup`, `/portal/onboarding`
+- [x] `ClientAccount.onboardingStep`, `onboardingCompletedAt`
+- [x] Profile completeness scoring
+- [ ] UploadThing in onboarding wizard
+- [ ] Phone field OTP validation (defer P5)
+- [ ] Onboarding analytics events (P14)
+
+**Done when:** New user completes signup → 80% profile → Active stage without matchmaker manual create.
+
+---
+
+### P2 — Profile self-service | Spec
+
+| | |
+|---|---|
+| **Goal** | Direct edit + moderation queue + multi-photo |
+| **Depends on** | P1 |
+| **Effort** | ~1.5 weeks |
+| **Demo** | Edit bio live; photo change queued for ops |
+
+**Checklist:** `ProfileRevision` model; `/portal/profile/edit`; ops approve UI; 6-photo album.
+
+**Done when:** Client edits non-sensitive fields instantly; sensitive fields require ops approve within 48h SLA.
+
+---
+
+### P3 — Mutual intro machine | Spec
+
+| | |
+|---|---|
+| **Goal** | Limited reveal → accept/decline → mutual unlock |
+| **Depends on** | P2 |
+| **Effort** | ~2 weeks |
+| **Demo** | Two test clients accept same intro → mutual |
+
+**Checklist:** `MutualMatch`; extend `MatchSuggestion.status`; limited reveal API; portal match detail UI.
+
+**Done when:** Contact fields hidden until mutual; audit log records both acceptances.
+
+---
+
+### P4 — C2C chat | Spec
+
+| | |
+|---|---|
+| **Goal** | Messaging post-mutual |
+| **Depends on** | P3 |
+| **Effort** | ~2 weeks |
+| **Demo** | Mutual clients exchange messages in portal |
+
+**Checklist:** `Conversation`, `C2cMessage`; `/api/c2c/*`; portal chat UI; block hook.
+
+**Done when:** Messages persist; blocked user cannot send.
+
+---
+
+### P5 — Trust & verification prod | Spec
+
+| | |
+|---|---|
+| **Goal** | OTP, KYC, photo review, gotra rules |
+| **Depends on** | P2 |
+| **Effort** | ~3 weeks |
+
+**Checklist:** MSG91 integration; ID upload; verification tiers; gotra filter in rank; report/block.
+
+---
+
+### P6 — Realtime infra | Spec
+
+| | |
+|---|---|
+| **Goal** | WebSocket + Redis |
+| **Depends on** | P4 |
+| **Effort** | ~1.5 weeks |
+
+**Checklist:** Pusher/Ably; Redis; C2C delivery <2s p95.
+
+---
+
+### P7 — Push notifications | Spec
+
+| | |
+|---|---|
+| **Goal** | FCM/APNs + preferences |
+| **Depends on** | P6 |
+| **Effort** | ~1 week |
+
+**Checklist:** `DeviceToken`; Expo push; deep links.
+
+---
+
+### P8 — Mobile app v1 | Spec
+
+| | |
+|---|---|
+| **Goal** | Store-ready Expo |
+| **Depends on** | P7 |
+| **Effort** | ~4 weeks |
+
+**Checklist:** See [`14-Mobile-App-Spec.md`](14-Mobile-App-Spec.md).
+
+---
+
+### P9 — Discovery (optional) | Spec
+
+| | |
+|---|---|
+| **Goal** | Browse/search pool |
+| **Depends on** | P3 |
+| **Effort** | ~2 weeks |
+
+**Checklist:** Postgres FTS; `/portal/discover`; express interest → matchmaker queue.
+
+---
+
+### P10 — Family delegates | Spec
+
+| | |
+|---|---|
+| **Goal** | Guardian accounts |
+| **Depends on** | P3 |
+| **Effort** | ~2 weeks |
+
+**Checklist:** `FamilyDelegate`; delegate portal; [ADR 007](adr/007-family-delegate-model.md).
+
+---
+
+### P11 — Payments India | Spec
+
+| | |
+|---|---|
+| **Goal** | Razorpay client premium + bureau self-serve |
+| **Depends on** | P2 |
+| **Effort** | ~2 weeks |
+
+**Checklist:** See [`16-Payments-Billing.md`](16-Payments-Billing.md).
+
+---
+
+### P12 — Matching v2 + Kundli | Spec
+
+| | |
+|---|---|
+| **Goal** | Astro + ML production + A/B |
+| **Depends on** | P5, P14 |
+| **Effort** | ~4 weeks |
+
+**Checklist:** See [`15-Matching-Engine-v2.md`](15-Matching-Engine-v2.md).
+
+---
+
+### P13 — Scheduling & video | Spec
+
+| | |
+|---|---|
+| **Goal** | Dates + video links |
+| **Depends on** | P4 |
+| **Effort** | ~2 weeks |
+
+**Checklist:** `ScheduledEvent`; calendar ICS; Daily.co or Zoom link.
+
+---
+
+### P14 — Analytics & ops CRM | Spec
+
+| | |
+|---|---|
+| **Goal** | Funnels + CRM + import/export |
+| **Depends on** | P12 |
+| **Effort** | ~3 weeks |
+
+**Checklist:** See [`13-Analytics-Metrics.md`](13-Analytics-Metrics.md).
+
+---
+
+### P15 — Compliance hardening | Spec
+
+| | |
+|---|---|
+| **Goal** | Legal + export/delete + DPDP |
+| **Depends on** | P5, P11 |
+| **Effort** | ~2 weeks |
+
+**Checklist:** See [`10-Compliance-Legal.md`](10-Compliance-Legal.md).
+
+---
+
+### P16 — Production scale | Spec
+
+| | |
+|---|---|
+| **Goal** | CDN, monitoring, rate limits |
+| **Depends on** | P5 |
+| **Effort** | ~2 weeks |
+
+**Checklist:** See [`11-Infrastructure-Deployment.md`](11-Infrastructure-Deployment.md).
+
+---
+
+## 5.4 Project-level Definition of Done (consumer v2)
+
+- [ ] P1–P8 complete for "real dating app" public beta
+- [ ] P5 + P15 complete for production India launch
+- [ ] All phases have Approved PRD + Flow + Schema + API slices
+
+---
+
+## 5.5 Risk register (v2)
+
+| Risk | Mitigation |
+|------|------------|
+| Scope creep into pure dating | ADR 001 hybrid guardrails |
+| Kundli vendor lock-in | Abstract `AstroProfile`; cache locally |
+| Razorpay + Stripe dual reconciliation | Unified entitlement layer in code |
+| C2C abuse | P5 report/block before P4 public beta |

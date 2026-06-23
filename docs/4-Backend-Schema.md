@@ -1,0 +1,288 @@
+# 4. Backend Schema
+
+**Project:** KnotWise  
+**Version:** 2.0  
+**Status:** Approved  
+**Supersedes:** [`archive/v1/4-Backend-Schema.md`](archive/v1/4-Backend-Schema.md)
+
+### Changelog v2.0
+
+- Documented post-MVP PostgreSQL schema (shipped)
+- P1 fields on `ClientAccount` (shipped)
+- Prisma deltas for P2–P16 (planned)
+
+---
+
+## 4.1 Current ER (shipped)
+
+```mermaid
+erDiagram
+    Organization ||--o{ Customer : has
+    Organization ||--o{ PoolProfile : has
+    Organization ||--o{ Membership : has
+    Matchmaker ||--o{ Membership : has
+    Customer ||--o| ClientAccount : has
+    Customer ||--o{ MatchSuggestion : receives
+    PoolProfile ||--o{ MatchSuggestion : proposed_in
+    Customer ||--o| Thread : matchmaker_chat
+    ClientAccount {
+        string id
+        int onboardingStep
+        datetime onboardingCompletedAt
+    }
+```
+
+Canonical source: [`prisma/schema.prisma`](../prisma/schema.prisma)
+
+### Shipped models (summary)
+
+| Model | Purpose |
+|-------|---------|
+| Organization, Membership, Matchmaker | Multi-tenant RBAC |
+| Customer, PoolProfile | Clients and candidate pool |
+| MatchSuggestion, EmailLog | Intros and delivery |
+| ClientAccount, MagicLinkToken | Client auth + P1 onboarding |
+| Thread, ThreadMessage | Matchmaker↔client chat |
+| VerificationCase, VerificationDocument | Ops verification |
+| Subscription, ClientBilling | Billing hooks |
+| Handoff, Notification, AuditEvent | Collaboration + audit |
+| Asset, OrgMatchingConfig, ModelVersion | Media + ML |
+
+---
+
+## 4.2 P1 delta (shipped)
+
+```prisma
+model ClientAccount {
+  onboardingStep          Int       @default(0)
+  onboardingCompletedAt   DateTime?
+}
+```
+
+Migration: `20260623180000_client_onboarding`
+
+---
+
+## 4.3 P2 — Profile self-service
+
+```prisma
+model ProfileRevision {
+  id         String   @id @default(cuid())
+  customerId String
+  fieldPath  String
+  oldValue   String
+  newValue   String
+  status     String   @default("pending")
+  reviewedBy String?
+  createdAt  DateTime @default(now())
+  resolvedAt DateTime?
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId, status])
+}
+```
+
+Extend `Asset`: `kind` enum `photo | video_intro`; max 6 photos per customer.
+
+---
+
+## 4.4 P3 — Mutual intro
+
+```prisma
+model MutualMatch {
+  id                String   @id @default(cuid())
+  matchSuggestionId String   @unique
+  clientAId         String
+  clientBId         String
+  status            String   @default("active")
+  contactSharedAt   DateTime?
+  createdAt         DateTime @default(now())
+
+  matchSuggestion MatchSuggestion @relation(fields: [matchSuggestionId], references: [id])
+
+  @@index([clientAId])
+  @@index([clientBId])
+}
+```
+
+Extend `MatchSuggestion.status`: add `viewed`, `accepted`, `declined`, `mutual`.
+
+---
+
+## 4.5 P4 — C2C chat
+
+```prisma
+model Conversation {
+  id             String   @id @default(cuid())
+  mutualMatchId  String   @unique
+  createdAt      DateTime @default(now())
+
+  mutualMatch MutualMatch @relation(fields: [mutualMatchId], references: [id])
+  messages    C2cMessage[]
+  participants ConversationParticipant[]
+}
+
+model C2cMessage {
+  id             String   @id @default(cuid())
+  conversationId String
+  senderId       String
+  body           String
+  createdAt      DateTime @default(now())
+  readAt         DateTime?
+
+  conversation Conversation @relation(fields: [conversationId], references: [id])
+
+  @@index([conversationId, createdAt])
+}
+```
+
+Separate from matchmaker `Thread` — do not merge.
+
+---
+
+## 4.6 P5 — Trust & safety
+
+```prisma
+model VerificationAttempt {
+  id         String   @id @default(cuid())
+  clientId   String
+  channel    String
+  target     String
+  codeHash   String
+  expiresAt  DateTime
+  verifiedAt DateTime?
+  createdAt  DateTime @default(now())
+
+  @@index([target, channel])
+}
+
+model Report {
+  id          String   @id @default(cuid())
+  reporterId  String
+  targetType  String
+  targetId    String
+  reason      String
+  status      String   @default("open")
+  createdAt   DateTime @default(now())
+}
+
+model Block {
+  id        String   @id @default(cuid())
+  blockerId String
+  blockedId String
+  createdAt DateTime @default(now())
+
+  @@unique([blockerId, blockedId])
+}
+```
+
+Add `Customer.verificationTier`: `unverified | pending | verified | premium`.
+
+---
+
+## 4.7 P7 — Push
+
+```prisma
+model DeviceToken {
+  id        String   @id @default(cuid())
+  clientId  String
+  platform  String
+  token     String   @unique
+  createdAt DateTime @default(now())
+}
+
+model NotificationPreference {
+  id           String  @id @default(cuid())
+  clientId     String  @unique
+  introPush    Boolean @default(true)
+  messagePush  Boolean @default(true)
+  reminderPush Boolean @default(true)
+}
+```
+
+---
+
+## 4.8 P10 — Family delegates
+
+```prisma
+model FamilyDelegate {
+  id         String   @id @default(cuid())
+  customerId String
+  email      String
+  role       String
+  invitedAt  DateTime @default(now())
+  acceptedAt DateTime?
+
+  @@unique([customerId, email])
+}
+```
+
+---
+
+## 4.9 P12 — Astro / Kundli
+
+```prisma
+model AstroProfile {
+  id           String   @id @default(cuid())
+  entityType   String
+  entityId     String
+  birthTime    DateTime?
+  birthPlace   String?
+  kundliJson   String
+  fetchedAt    DateTime @default(now())
+
+  @@unique([entityType, entityId])
+}
+```
+
+---
+
+## 4.10 P13 — Scheduling
+
+```prisma
+model ScheduledEvent {
+  id            String   @id @default(cuid())
+  mutualMatchId String
+  proposedBy    String
+  startsAt      DateTime
+  status        String   @default("proposed")
+  videoLink     String?
+  createdAt     DateTime @default(now())
+}
+```
+
+---
+
+## 4.11 P9 — Search metadata
+
+Materialized view or indexed columns on `PoolProfile`: `searchVector tsvector` (see [ADR 005](adr/005-search-engine.md)).
+
+---
+
+## 4.12 API types
+
+Shared biodata: [`lib/types.ts`](../lib/types.ts) — `Biodata`, `PartnerPreferences`, `Stage`.
+
+Profile completeness: [`lib/profile/completeness.ts`](../lib/profile/completeness.ts)
+
+---
+
+## 4.13 Migration path
+
+1. MVP SQLite → Post-MVP Postgres (done)
+2. P1 onboarding columns (done)
+3. P3 `MutualMatch` before P4 C2C
+4. P5 verification before premium badges
+5. No breaking changes to `biodata` JSON — extend fields in place
+
+---
+
+## Acceptance criteria
+
+- [ ] Every new P2–P16 entity has migration name and PRD cross-link
+- [ ] ER diagram updated when P3 ships
+
+## Open questions
+
+- Soft-delete customers vs hard delete for DPDP?

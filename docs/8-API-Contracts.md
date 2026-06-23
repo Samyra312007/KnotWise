@@ -1,0 +1,195 @@
+# 8. API Contracts
+
+**Project:** KnotWise  
+**Version:** 2.0  
+**Status:** Approved
+
+---
+
+## 8.1 Conventions
+
+| Item | Rule |
+|------|------|
+| Base URL | `/api` |
+| Auth | Cookie session (web) or `Authorization: Bearer` (mobile) |
+| Content-Type | `application/json` |
+| Errors | `{ "error": { "code": string, "message": string } }` |
+| Pagination | `?cursor=` / `?limit=` (default 20, max 50) |
+| Rate limit | 100/min public; 1000/min authenticated |
+
+### Error codes
+
+| Code | HTTP |
+|------|------|
+| UNAUTHORIZED | 401 |
+| FORBIDDEN | 403 |
+| NOT_FOUND | 404 |
+| INVALID_INPUT | 400 |
+| SUBSCRIPTION | 402 |
+| INCOMPLETE | 400 (onboarding) |
+| EMAIL_TAKEN | 409 |
+
+---
+
+## 8.2 Bureau APIs (shipped)
+
+See [`archive/v1/4-Backend-Schema.md`](../archive/v1/4-Backend-Schema.md) §4.5 for matchmaker endpoints.
+
+Key routes: `/api/auth/login`, `/api/customers`, `/api/customers/[id]/matches`, `/api/matches/send`, `/api/verification/*`, `/api/billing/*`.
+
+---
+
+## 8.3 P1 — Client auth & onboarding (partial shipped)
+
+### `POST /api/client/auth/signup`
+
+**Auth:** Public
+
+```json
+{
+  "email": "aanya@example.com",
+  "firstName": "Aanya",
+  "lastName": "Sharma",
+  "gender": "female",
+  "dateOfBirth": "1995-06-15"
+}
+```
+
+**Response 200:**
+
+```json
+{ "ok": true, "message": "Check your email to verify..." }
+```
+
+### `POST /api/client/auth/magic-link`
+
+**Body:** `{ "email": string }`  
+**Response:** Always 200 (no email enumeration).
+
+### `POST /api/client/auth/verify`
+
+**Body:** `{ "token": string }`  
+**Response:** `{ "ok": true, "redirect": "/portal/onboarding" | "/portal" }`
+
+### `GET /api/client/onboarding`
+
+**Auth:** Client session  
+**Response:**
+
+```json
+{
+  "biodata": { },
+  "progress": { "step": 2, "completeness": 64, "minCompleteness": 80, "completed": false },
+  "options": { "cities": [], "religions": [] }
+}
+```
+
+### `PATCH /api/client/onboarding`
+
+**Body:** `{ "step"?: number, "biodata"?: object, "complete"?: boolean }`
+
+---
+
+## 8.4 P2 — Profile self-service (planned)
+
+### `PATCH /api/client/profile`
+
+Direct field updates; sensitive fields return `{ "pendingRevision": true, "revisionId": "..." }`.
+
+### `GET /api/client/profile/revisions`
+
+List pending/approved changes.
+
+---
+
+## 8.5 P3 — Mutual intro (planned)
+
+### `GET /api/client/matches`
+
+Extend with `revealLevel`: `limited` | `full`.
+
+### `POST /api/client/matches/[id]/feedback`
+
+**Body:** `{ "decision": "accept" | "decline", "reason"?: string }`  
+**Response:** `{ "status": "accepted" | "declined" | "mutual", "mutualMatchId"?: string }`
+
+### `GET /api/client/mutual/[id]`
+
+Full reveal payload after mutual.
+
+---
+
+## 8.6 P4 — C2C chat (planned)
+
+### `GET /api/c2c/conversations`
+
+List conversations for authenticated client.
+
+### `GET /api/c2c/conversations/[id]/messages?cursor=`
+
+### `POST /api/c2c/conversations/[id]/messages`
+
+**Body:** `{ "body": string }` (max 4000 chars)
+
+### `POST /api/c2c/block`
+
+**Body:** `{ "blockedCustomerId": string }`
+
+---
+
+## 8.7 P5 — Trust (planned)
+
+### `POST /api/trust/otp/send`
+
+**Body:** `{ "channel": "sms" | "email", "target": string }`
+
+### `POST /api/trust/otp/verify`
+
+**Body:** `{ "attemptId": string, "code": string }`
+
+### `POST /api/trust/report`
+
+**Body:** `{ "targetType": string, "targetId": string, "reason": string }`
+
+---
+
+## 8.8 P9 — Discovery (planned)
+
+### `GET /api/client/discover?city=&ageMin=&cursor=`
+
+Returns ranked pool profiles (limited reveal).
+
+### `POST /api/client/discover/[poolProfileId]/interest`
+
+Notifies assigned matchmaker.
+
+---
+
+## 8.9 P10 — Family (planned)
+
+### `POST /api/family/delegates/invite`
+
+**Body:** `{ "email": string, "role": "observer" | "approver" }`
+
+### `POST /api/family/delegates/accept`
+
+---
+
+## 8.10 Webhooks (shipped + planned)
+
+| Path | Provider |
+|------|----------|
+| `/api/webhooks/resend` | Email events |
+| `/api/webhooks/stripe` | Bureau billing |
+| `/api/webhooks/razorpay` | Client premium P11 |
+
+---
+
+## Acceptance criteria
+
+- [ ] Each P2–P11 phase adds §8.x section before implementation
+- [ ] OpenAPI export optional P16
+
+## Open questions
+
+- GraphQL for mobile efficiency?

@@ -2,6 +2,8 @@
 
 An operating console for a private matchmaking bureau. Editorial typography, sun-faded paper, a single signature interactive moment per screen.
 
+**Product & engineering specs:** see [`docs/README.md`](docs/README.md) (Consumer v2 documentation index).
+
 ## Stack
 
 - Next.js 15 (App Router, React 19)
@@ -29,6 +31,7 @@ npm run db:seed
 npm run dev
 # Matchmaker console: http://localhost:3000
 # Client portal:     http://localhost:3000/portal/login
+# Client signup:     http://localhost:3000/portal/signup
 ```
 
 Set `EMAIL_DRY_RUN=true` in `.env` for local dev without Resend.
@@ -48,6 +51,7 @@ Each matchmaker has 8 assigned customers. One of Riya's clients has a portal acc
 | Feature | Route / API |
 |---|---|
 | Client portal | `/portal/*`, `/api/client/*` |
+| Client self-signup | `/portal/signup`, onboarding wizard at `/portal/onboarding` |
 | Real email | Resend + `EMAIL_DRY_RUN` fallback |
 | Billing | `/settings/billing`, Stripe webhooks |
 | Collaboration | Handoffs, @mentions, `/ops` |
