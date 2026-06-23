@@ -87,6 +87,7 @@ model Customer {
   handoffs              Handoff[]
   thread                Thread?
   profileChangeRequests ProfileChangeRequest[]
+  profileRevisions      ProfileRevision[]
 
   @@index([orgId])
   @@index([stage])
@@ -210,6 +211,8 @@ model ClientAccount {
   emailVerifiedAt DateTime?
   lastLoginAt     DateTime?
   notifyEmail     Boolean   @default(true)
+  onboardingStep  Int       @default(0)
+  onboardingCompletedAt DateTime?
 
   customer   Customer         @relation(fields: [customerId], references: [id], onDelete: Cascade)
   magicLinks MagicLinkToken[]
@@ -351,6 +354,7 @@ model Asset {
   orgId      String
   entityType String
   entityId   String
+  kind       String   @default("photo")
   url        String
   key        String
   mimeType   String
@@ -360,7 +364,24 @@ model Asset {
 
   org Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
 
-  @@index([entityType, entityId])
+  @@index([entityType, entityId, kind])
+}
+
+model ProfileRevision {
+  id         String    @id @default(cuid())
+  customerId String
+  fieldPath  String
+  oldValue   String
+  newValue   String
+  status     String    @default("pending")
+  reviewedBy String?
+  createdAt  DateTime  @default(now())
+  resolvedAt DateTime?
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId, status])
+  @@index([status, createdAt])
 }
 
 model OrgMatchingConfig {

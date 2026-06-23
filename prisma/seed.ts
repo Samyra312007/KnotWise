@@ -53,6 +53,18 @@ function pickSome<T>(arr: readonly T[], min: number, max: number): T[] {
   return Array.from(set);
 }
 
+function portraitIndex(seed: string): number {
+  let h = 0;
+  for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) >>> 0;
+  return h % 100;
+}
+
+function portraitUrl(gender: Gender, firstName: string, lastName: string, ageYears: number): string {
+  const n = portraitIndex(`${firstName}-${lastName}-${ageYears}`);
+  const folder = gender === "male" ? "men" : "women";
+  return `https://randomuser.me/api/portraits/${folder}/${n}.jpg`;
+}
+
 function trinary(weights: [number, number, number] = [60, 20, 20]): Trinary {
   const total = weights[0] + weights[1] + weights[2];
   const r = faker.number.float({ min: 0, max: total });
@@ -203,7 +215,7 @@ function generateBiodata(gender: Gender, opts: { ageMin?: number; ageMax?: numbe
       preferredDiets: diet === "Vegetarian" || diet === "Jain" ? ["Vegetarian", "Eggetarian", "Vegan", "Jain"] : undefined,
     },
 
-    photoUrl: `https://i.pravatar.cc/240?u=${firstName}-${lastName}-${ageYears}`,
+    photoUrl: portraitUrl(gender, firstName, lastName, ageYears),
   };
 }
 
@@ -349,6 +361,8 @@ async function main() {
             customerId: customer.id,
             email: b.email.toLowerCase(),
             emailVerifiedAt: new Date(),
+            onboardingCompletedAt: new Date(),
+            onboardingStep: 6,
           },
         });
       }

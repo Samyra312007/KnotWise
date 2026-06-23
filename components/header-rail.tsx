@@ -13,12 +13,11 @@ export interface Crumb {
 }
 
 export interface HeaderRailProps {
-  matchmakerName: string;
   role?: string;
   crumbs?: Crumb[];
 }
 
-export function HeaderRail({ matchmakerName, role, crumbs = [] }: HeaderRailProps) {
+export function HeaderRail({ role, crumbs = [] }: HeaderRailProps) {
   const router = useRouter();
   const [scrolled, setScrolled] = React.useState(false);
 
@@ -62,24 +61,25 @@ export function HeaderRail({ matchmakerName, role, crumbs = [] }: HeaderRailProp
           </span>
         </Link>
 
-        <nav
-          aria-label="Breadcrumb"
-          className="hidden sm:flex items-center gap-2 mx-auto text-[14px]"
-        >
-          <span className="text-ink-mute">{matchmakerName.split(" ")[0]}</span>
-          {crumbs.map((c, i) => (
-            <React.Fragment key={i}>
-              <span aria-hidden className="text-ink-mute/60">—</span>
-              {c.href && i < crumbs.length - 1 ? (
-                <Link href={c.href} className="text-ink-mute hover:text-ink-warm">
-                  {c.label}
-                </Link>
-              ) : (
-                <span className="text-ink">{c.label}</span>
-              )}
-            </React.Fragment>
-          ))}
-        </nav>
+        {crumbs.length > 0 && (
+          <nav
+            aria-label="Breadcrumb"
+            className="hidden sm:flex items-center gap-2 mx-auto text-[14px]"
+          >
+            {crumbs.map((c, i) => (
+              <React.Fragment key={i}>
+                {i > 0 && <span aria-hidden className="text-ink-mute/60">—</span>}
+                {c.href && i < crumbs.length - 1 ? (
+                  <Link href={c.href} className="text-ink-mute hover:text-ink-warm">
+                    {c.label}
+                  </Link>
+                ) : (
+                  <span className="text-ink">{c.label}</span>
+                )}
+              </React.Fragment>
+            ))}
+          </nav>
+        )}
 
         <div className="ml-auto flex items-center gap-6">
           <OpsNavLink role={role} />
@@ -90,9 +90,6 @@ export function HeaderRail({ matchmakerName, role, crumbs = [] }: HeaderRailProp
             Billing
           </Link>
           <NotificationsBell />
-          <span className="font-sans font-medium text-[14px] text-ink hidden md:inline">
-            {matchmakerName}
-          </span>
           <button
             type="button"
             onClick={logout}

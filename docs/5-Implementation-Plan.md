@@ -65,7 +65,7 @@ flowchart LR
 
 ---
 
-### P1 — Client onboarding v2 | **In Progress**
+### P1 — Client onboarding v2 | **Shipped**
 
 | | |
 |---|---|
@@ -81,15 +81,16 @@ flowchart LR
 - [x] `/portal/signup`, `/portal/onboarding`
 - [x] `ClientAccount.onboardingStep`, `onboardingCompletedAt`
 - [x] Profile completeness scoring
-- [ ] UploadThing in onboarding wizard
-- [ ] Phone field OTP validation (defer P5)
+- [x] UploadThing in onboarding wizard
+- [x] Step validation per wizard step
+- [x] Phone format validation (OTP deferred to P5)
 - [ ] Onboarding analytics events (P14)
 
 **Done when:** New user completes signup → 80% profile → Active stage without matchmaker manual create.
 
 ---
 
-### P2 — Profile self-service | Spec
+### P2 — Profile self-service | Shipped
 
 | | |
 |---|---|

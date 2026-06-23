@@ -33,6 +33,12 @@ export default function PortalLoginPage() {
       <div className="w-full max-w-md">
         <h1 className="font-display text-display-m text-ink">Client portal</h1>
         <p className="mt-3 text-ink-warm">Sign in with the email your matchmaker has on file.</p>
+        <p className="mt-2 text-[13px] text-ink-mute">
+          New here?{" "}
+          <a href="/portal/signup" className="text-vermilion hover:underline">
+            Create an account
+          </a>
+        </p>
         {sent ? (
           <p className="mt-8 text-body-l italic text-ink-warm">
             If that email is registered, a sign-in link is on its way. Check your inbox.

@@ -73,12 +73,14 @@ Each phase: **Problem → Stories → Goals / Non-goals → Acceptance → Metri
 
 - [x] Signup API creates Customer + ClientAccount
 - [x] Onboarding wizard with completeness gate
-- [ ] Phone OTP on signup
-- [ ] Photo upload in wizard (URL-only today)
+- [x] UploadThing photo upload in wizard
+- [x] Step-by-step validation
+- [ ] Phone OTP on signup (P5)
+- [ ] Onboarding analytics events (P14)
 
 **Metrics:** Signup completion rate; median time to 80% profile.
 
-**Status:** Partial — see [`5-Implementation-Plan.md`](5-Implementation-Plan.md) §P1.
+**Status:** Shipped — see [`5-Implementation-Plan.md`](5-Implementation-Plan.md) §P1.
 
 ---
 
@@ -98,7 +100,7 @@ Each phase: **Problem → Stories → Goals / Non-goals → Acceptance → Metri
 
 **Metrics:** Time to apply approved change; moderation queue SLA.
 
-**Status:** Spec
+**Status:** Shipped
 
 ---
 

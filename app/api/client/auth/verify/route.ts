@@ -3,6 +3,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { getClientSession } from "@/lib/auth/session";
 import { hashToken } from "@/lib/auth/mobile";
+import { needsOnboarding, parseCustomerBiodata } from "@/lib/onboarding/status";
 
 const schema = z.object({ token: z.string().min(1) });
 
@@ -40,7 +41,10 @@ export async function POST(req: Request) {
   session.email = record.client.email;
   await session.save();
 
-  return NextResponse.json({ ok: true, redirect: "/portal" });
+  const biodata = parseCustomerBiodata(record.client.customer);
+  const redirect = needsOnboarding(record.client, biodata) ? "/portal/onboarding" : "/portal";
+
+  return NextResponse.json({ ok: true, redirect });
 }
 
 export async function GET(req: Request) {

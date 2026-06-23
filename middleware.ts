@@ -4,10 +4,13 @@ import type { NextRequest } from "next/server";
 const PUBLIC_PATHS = [
   "/login",
   "/portal/login",
+  "/portal/signup",
   "/portal/verify",
   "/api/auth/login",
   "/api/auth/logout",
   "/api/client/auth/magic-link",
+  "/api/client/auth/signup",
+  "/api/client/auth/logout",
   "/api/webhooks/resend",
   "/api/webhooks/stripe",
   "/api/inngest",
@@ -37,7 +40,12 @@ export function middleware(req: NextRequest) {
   const hasClientSession = req.cookies.has("knotwise_client_session");
 
   if (pathname.startsWith("/portal")) {
-    if (!hasClientSession && pathname !== "/portal/login" && pathname !== "/portal/verify") {
+    if (
+      !hasClientSession &&
+      pathname !== "/portal/login" &&
+      pathname !== "/portal/signup" &&
+      pathname !== "/portal/verify"
+    ) {
       return NextResponse.redirect(new URL("/portal/login", req.url));
     }
     return NextResponse.next();

@@ -26,8 +26,9 @@
 |-----|-------|--------------|-------------|
 | MVP v1 | Matchmaker console only | [`archive/v1/`](archive/v1/) | Shipped |
 | Post-MVP bureau | Org/RBAC, portal, email, billing hooks, ops, verification, chat | PRD Part A, Impl Plan §8–20 | Shipped |
-| Consumer P1 | Self-signup + onboarding wizard | PRD §P1 | Partial |
-| Consumer P2–P16 | Real dating/matrimonial product | PRD §P2–P16, docs 8–17 | Spec only |
+| Consumer P1 | Self-signup + onboarding wizard | PRD §P1 | Shipped |
+| Consumer P2 | Profile self-service | PRD §P2, Flow §II.8, Schema §P2 | Shipped |
+| Consumer P3–P16 | Real dating/matrimonial product | PRD §P3–P16, docs 8–17 | Spec only |
 
 ---
 
@@ -37,7 +38,7 @@
 |-------|--------|
 | Matchmaker console + match engine | Shipped |
 | Post-MVP bureau (org/RBAC, email, billing hooks, ops, verification queue, matchmaker↔client chat, uploads) | Shipped |
-| P1 self-signup + onboarding wizard | Partial (`app/portal/signup`, `app/api/client/onboarding`) |
+| P1 self-signup + onboarding wizard | Shipped (`app/portal/signup`, `app/api/client/onboarding`) |
 | P2–P16 consumer features | Spec only (this library) |
 
 ---
@@ -97,8 +98,8 @@ Every remaining consumer-dating gap maps to a phase and primary doc.
 
 | Gap | Phase | Primary doc | Status |
 |-----|-------|-------------|--------|
-| Client self-registration + full profile onboarding | P1 | PRD §P1, Flow §II.1, Schema §P1 | Partial |
-| Client-side profile editing without matchmaker approval | P2 | PRD §P2, Flow §II.8, Schema §P2 | Spec |
+| Client self-registration + full profile onboarding | P1 | PRD §P1, Flow §II.1, Schema §P1 | Shipped |
+| Client-side profile editing without matchmaker approval | P2 | PRD §P2, Flow §II.8, Schema §P2 | Shipped |
 | Direct client-to-client discovery (browse/search/swipe) | P9 | PRD §P9, Flow §II.5, ADR 001 | Spec |
 | Direct client-to-client chat after mutual interest | P4 | PRD §P4, doc 17, ADR 002 | Spec |
 | Coordinated intro: mutual opt-in → contact reveal | P3 | PRD §P3, Flow §II.2–3, Schema §P3 | Spec |
@@ -158,8 +159,8 @@ Every remaining consumer-dating gap maps to a phase and primary doc.
 
 | Gap | Phase | Primary doc | Status |
 |-----|-------|-------------|--------|
-| Multiple photos, albums, video intros | P2 | PRD §P2, Schema §P2 | Spec |
-| Profile completeness scoring and nudges | P1, P2 | PRD §P1–P2 | Partial |
+| Multiple photos, albums, video intros | P2 | PRD §P2, Schema §P2 | Shipped (photos; video P2+) |
+| Profile completeness scoring and nudges | P1, P2 | PRD §P1–P2 | Shipped (P1) |
 | Verification badges visible to clients | P5 | doc 9, doc 6 §6.16 | Spec |
 
 ### Ops & analytics

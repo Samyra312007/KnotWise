@@ -83,7 +83,9 @@ model ProfileRevision {
 }
 ```
 
-Extend `Asset`: `kind` enum `photo | video_intro`; max 6 photos per customer.
+Migration: `20260623200000_profile_self_service`
+
+Extend `Asset`: `kind` default `photo`; max 6 photos per customer via portal gallery.
 
 ---
 

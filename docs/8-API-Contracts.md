@@ -90,7 +90,7 @@ Key routes: `/api/auth/login`, `/api/customers`, `/api/customers/[id]/matches`, 
 
 ---
 
-## 8.4 P2 — Profile self-service (planned)
+## 8.4 P2 — Profile self-service (shipped)
 
 ### `PATCH /api/client/profile`
 

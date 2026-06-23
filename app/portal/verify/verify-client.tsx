@@ -16,11 +16,11 @@ export default function PortalVerifyClient() {
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ token }),
     })
-      .then((r) => {
+      .then(async (r) => {
+        const d = await r.json();
         if (!r.ok) throw new Error("bad");
-        return r.json();
+        router.replace(d.redirect ?? "/portal/onboarding");
       })
-      .then(() => router.replace("/portal"))
       .catch(() => setError(true));
   }, [token, router]);
 

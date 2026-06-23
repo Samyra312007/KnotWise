@@ -5,22 +5,40 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 
+type ProfileRevisionItem = {
+  id: string;
+  fieldPath: string;
+  oldValue: unknown;
+  newValue: unknown;
+  customer: { id: string; firstName: string; lastName: string; city: string };
+};
+
+function formatValue(value: unknown): string {
+  if (value == null) return "—";
+  if (typeof value === "string") return value;
+  return JSON.stringify(value);
+}
+
 export function OpsDashboard({ role }: { role: string }) {
   const [verification, setVerification] = React.useState<
     Array<{ id: string; entityType: string; entityId: string; status: string; submittedAt: string }>
   >([]);
+  const [revisions, setRevisions] = React.useState<ProfileRevisionItem[]>([]);
   const [ml, setMl] = React.useState<{ mlEnabled: boolean; bias: Array<{ religion: string; acceptanceRate: number; total: number }> } | null>(null);
 
   React.useEffect(() => {
     fetch("/api/verification?status=pending")
       .then((r) => r.json())
       .then((d) => setVerification(d.items ?? []));
+    fetch("/api/profile-revisions?status=pending")
+      .then((r) => r.json())
+      .then((d) => setRevisions(d.items ?? []));
     fetch("/api/ml")
       .then((r) => r.json())
       .then(setMl);
   }, []);
 
-  async function review(id: string, status: "verified" | "rejected") {
+  async function reviewVerification(id: string, status: "verified" | "rejected") {
     const res = await fetch(`/api/verification/${id}`, {
       method: "PATCH",
       headers: { "content-type": "application/json" },
@@ -32,6 +50,20 @@ export function OpsDashboard({ role }: { role: string }) {
     }
     toast.success(status === "verified" ? "Verified." : "Rejected.");
     setVerification((prev) => prev.filter((v) => v.id !== id));
+  }
+
+  async function reviewRevision(id: string, decision: "approved" | "rejected") {
+    const res = await fetch(`/api/profile-revisions/${id}`, {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ decision }),
+    });
+    if (!res.ok) {
+      toast.error("Review failed.");
+      return;
+    }
+    toast.success(decision === "approved" ? "Change approved." : "Change rejected.");
+    setRevisions((prev) => prev.filter((r) => r.id !== id));
   }
 
   async function tuneModel() {
@@ -60,12 +92,50 @@ export function OpsDashboard({ role }: { role: string }) {
                   <div className="font-mono text-[10px] text-ink-mute">{v.entityId}</div>
                 </div>
                 <div className="flex gap-2">
-                  <Button variant="accent" size="compact" onClick={() => review(v.id, "verified")}>
+                  <Button variant="accent" size="compact" onClick={() => reviewVerification(v.id, "verified")}>
                     Approve
                   </Button>
-                  <Button variant="quiet" size="compact" onClick={() => review(v.id, "rejected")}>
+                  <Button variant="quiet" size="compact" onClick={() => reviewVerification(v.id, "rejected")}>
                     Reject
                   </Button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      <div className="mt-16">
+        <h2 className="font-mono text-[11px] uppercase tracking-[0.18em] text-ink-mute mb-6">
+          Profile change queue
+        </h2>
+        {revisions.length === 0 ? (
+          <p className="text-ink-mute italic">No pending profile edits.</p>
+        ) : (
+          <ul className="space-y-4">
+            {revisions.map((r) => (
+              <li key={r.id} className="border-t border-ink/12 pt-4">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <div className="text-ink">
+                      {r.customer.firstName} {r.customer.lastName} · {r.customer.city}
+                    </div>
+                    <div className="font-mono text-[10px] text-ink-mute mt-1">{r.fieldPath}</div>
+                    <div className="mt-2 text-[13px] text-ink-warm">
+                      {formatValue(r.oldValue)} → {formatValue(r.newValue)}
+                    </div>
+                    {r.fieldPath === "photoUrl" && typeof r.newValue === "string" ? (
+                      <img src={r.newValue} alt="" className="mt-3 size-20 object-cover border border-ink/12" />
+                    ) : null}
+                  </div>
+                  <div className="flex gap-2 shrink-0">
+                    <Button variant="accent" size="compact" onClick={() => reviewRevision(r.id, "approved")}>
+                      Approve
+                    </Button>
+                    <Button variant="quiet" size="compact" onClick={() => reviewRevision(r.id, "rejected")}>
+                      Reject
+                    </Button>
+                  </div>
                 </div>
               </li>
             ))}
