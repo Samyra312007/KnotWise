@@ -120,7 +120,7 @@ Each phase: **Problem → Stories → Goals / Non-goals → Acceptance → Metri
 
 **Metrics:** Mutual rate; time intro → mutual.
 
-**Status:** Spec — [ADR 001](adr/001-hybrid-model.md)
+**Status:** Shipped — [ADR 001](adr/001-hybrid-model.md)
 
 ---
 
@@ -140,7 +140,7 @@ Each phase: **Problem → Stories → Goals / Non-goals → Acceptance → Metri
 
 **Metrics:** Messages per mutual match; response time.
 
-**Status:** Spec — [ADR 002](adr/002-c2c-chat.md)
+**Status:** Shipped — [ADR 002](adr/002-c2c-chat.md)
 
 ---
 

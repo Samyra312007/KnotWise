@@ -24,7 +24,8 @@ export default async function PortalProtectedLayout({ children }: { children: Re
           <nav className="flex items-center gap-6 font-mono text-[10px] uppercase tracking-[0.18em]">
             <Link href="/portal">Home</Link>
             <Link href="/portal/matches">Matches</Link>
-            <Link href="/portal/messages">Messages</Link>
+            <Link href="/portal/chat">Chat</Link>
+            <Link href="/portal/messages">Matchmaker</Link>
             <Link href="/portal/profile">Profile</Link>
             <form action="/api/client/auth/logout" method="POST">
               <button type="submit" className="text-ink-mute hover:text-vermilion">

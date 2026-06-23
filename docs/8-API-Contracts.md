@@ -102,7 +102,7 @@ List pending/approved changes.
 
 ---
 
-## 8.5 P3 — Mutual intro (planned)
+## 8.5 P3 — Mutual intro (shipped)
 
 ### `GET /api/client/matches`
 
@@ -119,7 +119,7 @@ Full reveal payload after mutual.
 
 ---
 
-## 8.6 P4 — C2C chat (planned)
+## 8.6 P4 — C2C chat (shipped)
 
 ### `GET /api/c2c/conversations`
 

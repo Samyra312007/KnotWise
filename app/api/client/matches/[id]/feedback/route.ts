@@ -2,18 +2,24 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { requireApiClientSession } from "@/lib/auth/api";
-import { createNotification } from "@/lib/notifications";
-import { getPrimaryMatchmakerId } from "@/lib/access/customers";
+import { submitIntroFeedback } from "@/lib/matching/mutual";
 
 const schema = z.object({
-  status: z.enum(["accepted", "declined"]),
+  decision: z.enum(["accept", "decline"]).optional(),
+  status: z.enum(["accepted", "declined"]).optional(),
   reason: z.string().max(500).optional(),
 });
 
-export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }> }) {
+function normalizeDecision(body: z.infer<typeof schema>): "accept" | "decline" | null {
+  if (body.decision) return body.decision;
+  if (body.status === "accepted") return "accept";
+  if (body.status === "declined") return "decline";
+  return null;
+}
+
+async function handleFeedback(req: Request, id: string) {
   const session = await requireApiClientSession();
   if (session instanceof NextResponse) return session;
-  const { id } = await ctx.params;
 
   let parsed;
   try {
@@ -22,42 +28,51 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
     return NextResponse.json({ error: { code: "INVALID_INPUT", message: "Invalid feedback." } }, { status: 400 });
   }
 
-  const suggestion = await prisma.matchSuggestion.findFirst({
-    where: { id, customerId: session.customerId, status: "sent" },
-    include: { customer: true, poolProfile: true },
-  });
-
-  if (!suggestion) {
-    return NextResponse.json({ error: { code: "NOT_FOUND", message: "Match not found." } }, { status: 404 });
+  const decision = normalizeDecision(parsed);
+  if (!decision) {
+    return NextResponse.json({ error: { code: "INVALID_INPUT", message: "Invalid feedback." } }, { status: 400 });
   }
 
-  await prisma.matchSuggestion.update({
-    where: { id },
-    data: {
-      status: parsed.status,
-      feedbackReason: parsed.reason,
-      feedbackAt: new Date(),
-    },
+  const customer = await prisma.customer.findUnique({
+    where: { id: session.customerId },
+    select: { orgId: true },
   });
-
-  if (parsed.status === "accepted" && suggestion.customer.stage === "Match Sent") {
-    await prisma.customer.update({
-      where: { id: session.customerId },
-      data: { stage: "In Conversation" },
-    });
+  if (!customer) {
+    return NextResponse.json({ error: { code: "NOT_FOUND", message: "Not found." } }, { status: 404 });
   }
 
-  const mmId = await getPrimaryMatchmakerId(session.customerId);
-  if (mmId) {
-    const cand = JSON.parse(suggestion.poolProfile.biodata) as { firstName: string; lastName: string };
-    await createNotification(mmId, "match_feedback", {
-      customerId: session.customerId,
+  try {
+    const result = await submitIntroFeedback({
       suggestionId: id,
-      status: parsed.status,
-      candidateName: `${cand.firstName} ${cand.lastName}`,
+      customerId: session.customerId,
+      orgId: customer.orgId,
+      clientId: session.clientId,
+      decision,
       reason: parsed.reason,
     });
-  }
 
-  return NextResponse.json({ ok: true, status: parsed.status });
+    const status =
+      result.status === "mutual" ? "mutual" : result.status === "accepted" ? "accepted" : "declined";
+
+    return NextResponse.json({
+      ok: true,
+      status,
+      mutualMatchId: "mutualMatchId" in result ? result.mutualMatchId : undefined,
+    });
+  } catch (err) {
+    if (err instanceof Error && err.message === "NOT_FOUND") {
+      return NextResponse.json({ error: { code: "NOT_FOUND", message: "Intro not found." } }, { status: 404 });
+    }
+    throw err;
+  }
+}
+
+export async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {
+  const { id } = await ctx.params;
+  return handleFeedback(req, id);
+}
+
+export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }> }) {
+  const { id } = await ctx.params;
+  return handleFeedback(req, id);
 }

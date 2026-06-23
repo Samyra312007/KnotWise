@@ -2,46 +2,44 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireApiClientSession } from "@/lib/auth/api";
 import type { Biodata } from "@/lib/types";
+import { buildIntroReveal, revealLevelForSuggestion } from "@/lib/matching/reveal";
+
+const LIST_STATUSES = ["sent", "viewed", "accepted", "declined", "mutual"] as const;
 
 export async function GET() {
   const session = await requireApiClientSession();
   if (session instanceof NextResponse) return session;
 
   const suggestions = await prisma.matchSuggestion.findMany({
-    where: { customerId: session.customerId, status: { in: ["sent", "accepted", "declined"] } },
-    include: { poolProfile: true },
+    where: { customerId: session.customerId, status: { in: [...LIST_STATUSES] } },
+    include: { poolProfile: true, mutualMatch: { include: { conversation: true } } },
     orderBy: { createdAt: "desc" },
   });
-
-  const customer = await prisma.customer.findUnique({
-    where: { id: session.customerId },
-    select: { stage: true },
-  });
-
-  const revealFull = customer?.stage === "In Conversation";
 
   return NextResponse.json({
     items: suggestions.map((s) => {
       const biodata = JSON.parse(s.poolProfile.biodata) as Biodata;
+      const revealLevel = revealLevelForSuggestion(s.status, !!s.mutualMatch);
+      const candidate = buildIntroReveal({
+        biodata,
+        photoUrl: s.poolProfile.photoUrl,
+        score: s.score,
+        bucket: s.bucket,
+        revealLevel,
+      });
+
       return {
         id: s.id,
         status: s.status,
+        revealLevel,
         score: s.score,
+        bucket: s.bucket,
         feedbackReason: s.feedbackReason,
         feedbackAt: s.feedbackAt?.toISOString(),
-        candidate: {
-          id: s.poolProfileId,
-          firstName: biodata.firstName,
-          lastName: revealFull ? biodata.lastName : biodata.lastName.charAt(0) + ".",
-          age: biodata.dateOfBirth,
-          city: biodata.city,
-          designation: biodata.designation,
-          currentCompany: biodata.currentCompany,
-          photoUrl: s.poolProfile.photoUrl,
-          about: biodata.bio?.slice(0, 160),
-          email: revealFull ? biodata.email : undefined,
-          phone: revealFull ? biodata.phone : undefined,
-        },
+        viewedAt: s.viewedAt?.toISOString(),
+        mutualMatchId: s.mutualMatch?.id,
+        conversationId: s.mutualMatch?.conversation?.id,
+        candidate,
       };
     }),
   });

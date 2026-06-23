@@ -110,6 +110,8 @@ model MutualMatch {
 
 Extend `MatchSuggestion.status`: add `viewed`, `accepted`, `declined`, `mutual`.
 
+Migration: `20260623210000_mutual_intro`
+
 ---
 
 ## 4.5 P4 — C2C chat
@@ -140,6 +142,8 @@ model C2cMessage {
 ```
 
 Separate from matchmaker `Thread` — do not merge.
+
+Migration: `20260623220000_c2c_chat`
 
 ---
 

@@ -105,7 +105,7 @@ flowchart LR
 
 ---
 
-### P3 — Mutual intro machine | Spec
+### P3 — Mutual intro machine | Shipped
 
 | | |
 |---|---|
@@ -120,7 +120,7 @@ flowchart LR
 
 ---
 
-### P4 — C2C chat | Spec
+### P4 — C2C chat | Shipped
 
 | | |
 |---|---|

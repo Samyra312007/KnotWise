@@ -238,6 +238,11 @@ const STAGES_FOR_CUSTOMERS: Stage[] = [
 
 async function main() {
   console.log("Resetting database...");
+  await prisma.block.deleteMany();
+  await prisma.c2cMessage.deleteMany();
+  await prisma.conversation.deleteMany();
+  await prisma.profileRevision.deleteMany();
+  await prisma.mutualMatch.deleteMany();
   await prisma.mobileAuthToken.deleteMany();
   await prisma.profileChangeRequest.deleteMany();
   await prisma.auditEvent.deleteMany();
@@ -331,6 +336,11 @@ async function main() {
     { mm: matchmakers[2], role: "ops" },
   ] as const;
 
+  let demoClientA: { customerId: string; poolProfileId: string } | null = null;
+  let demoClientB: { customerId: string; poolProfileId: string } | null = null;
+  let chatClientA: { customerId: string; poolProfileId: string; firstName: string } | null = null;
+  let chatClientB: { customerId: string; poolProfileId: string; firstName: string } | null = null;
+
   for (const { mm } of mmRoles) {
     for (let i = 0; i < 8; i++) {
       const gender: Gender = i % 2 === 0 ? "female" : "male";
@@ -355,7 +365,7 @@ async function main() {
       await prisma.customerAssignment.create({
         data: { customerId: customer.id, matchmakerId: mm.id, role: "primary" },
       });
-      if (mm.username === "riya" && i === 0) {
+      if (mm.username === "riya" && (i === 0 || i === 1 || i === 2 || i === 3)) {
         await prisma.clientAccount.create({
           data: {
             customerId: customer.id,
@@ -365,8 +375,130 @@ async function main() {
             onboardingStep: 6,
           },
         });
+        const mirror = await prisma.poolProfile.create({
+          data: {
+            orgId: org.id,
+            firstName: b.firstName,
+            lastName: b.lastName,
+            gender: b.gender,
+            dateOfBirth: new Date(b.dateOfBirth),
+            city: b.city,
+            country: b.country,
+            biodata: JSON.stringify(b),
+            photoUrl: b.photoUrl ?? null,
+            verifiedAt: new Date(),
+            linkedCustomerId: customer.id,
+          },
+        });
+        if (i === 0) demoClientA = { customerId: customer.id, poolProfileId: mirror.id };
+        if (i === 1) demoClientB = { customerId: customer.id, poolProfileId: mirror.id };
+        if (i === 2) chatClientA = { customerId: customer.id, poolProfileId: mirror.id, firstName: b.firstName };
+        if (i === 3) chatClientB = { customerId: customer.id, poolProfileId: mirror.id, firstName: b.firstName };
       }
     }
+  }
+
+  if (demoClientA && demoClientB) {
+    const introPairId = "seed-mutual-demo-pair";
+    await prisma.matchSuggestion.createMany({
+      data: [
+        {
+          customerId: demoClientA.customerId,
+          poolProfileId: demoClientB.poolProfileId,
+          score: 86,
+          bucket: "high",
+          explanation: "Strong alignment on city and education.",
+          breakdown: JSON.stringify({ city: 20, education: 18 }),
+          status: "sent",
+          introPairId,
+        },
+        {
+          customerId: demoClientB.customerId,
+          poolProfileId: demoClientA.poolProfileId,
+          score: 84,
+          bucket: "high",
+          explanation: "Strong alignment on city and education.",
+          breakdown: JSON.stringify({ city: 20, education: 17 }),
+          status: "sent",
+          introPairId,
+        },
+      ],
+    });
+    await prisma.customer.updateMany({
+      where: { id: { in: [demoClientA.customerId, demoClientB.customerId] } },
+      data: { stage: "Match Sent" },
+    });
+    console.log("Seeded reciprocal intro pair for portal mutual demo.");
+  }
+
+  if (chatClientA && chatClientB) {
+    const introPairId = "seed-c2c-demo-pair";
+    const suggestionA = await prisma.matchSuggestion.create({
+      data: {
+        customerId: chatClientA.customerId,
+        poolProfileId: chatClientB.poolProfileId,
+        score: 88,
+        bucket: "high",
+        explanation: "Pre-mutualized for C2C chat demo.",
+        breakdown: JSON.stringify({ city: 20 }),
+        status: "mutual",
+        introPairId,
+      },
+    });
+    await prisma.matchSuggestion.create({
+      data: {
+        customerId: chatClientB.customerId,
+        poolProfileId: chatClientA.poolProfileId,
+        score: 87,
+        bucket: "high",
+        explanation: "Pre-mutualized for C2C chat demo.",
+        breakdown: JSON.stringify({ city: 20 }),
+        status: "mutual",
+        introPairId,
+      },
+    });
+
+    const [clientAId, clientBId] =
+      chatClientA.customerId < chatClientB.customerId
+        ? [chatClientA.customerId, chatClientB.customerId]
+        : [chatClientB.customerId, chatClientA.customerId];
+
+    const mutual = await prisma.mutualMatch.create({
+      data: {
+        matchSuggestionId: suggestionA.id,
+        introPairId,
+        clientAId,
+        clientBId,
+        status: "active",
+        contactSharedAt: new Date(),
+      },
+    });
+
+    const conversation = await prisma.conversation.create({
+      data: { mutualMatchId: mutual.id },
+    });
+
+    await prisma.c2cMessage.createMany({
+      data: [
+        {
+          conversationId: conversation.id,
+          senderId: chatClientA.customerId,
+          body: `Hi ${chatClientB.firstName}, great to connect after our matchmaker intro.`,
+        },
+        {
+          conversationId: conversation.id,
+          senderId: chatClientB.customerId,
+          body: "Likewise! Would you be free for a coffee chat this weekend?",
+        },
+      ],
+    });
+
+    await prisma.customer.updateMany({
+      where: { id: { in: [chatClientA.customerId, chatClientB.customerId] } },
+      data: { stage: "In Conversation" },
+    });
+
+    console.log("Seeded mutual match with C2C conversation demo.");
   }
 
   console.log("Writing data/dummy-profiles.json...");

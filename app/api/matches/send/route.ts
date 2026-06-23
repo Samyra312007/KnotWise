@@ -9,6 +9,7 @@ import { requireActiveSubscription, canSendEmail } from "@/lib/billing/subscript
 import { enqueueIntroEmail } from "@/lib/jobs/email-jobs";
 import { logAuditEvent } from "@/lib/audit";
 import { canWriteCustomers } from "@/lib/auth/roles";
+import { createReciprocalIntroPair } from "@/lib/matching/mutual";
 
 const schema = z.object({
   customerId: z.string().min(1),
@@ -58,6 +59,16 @@ export async function POST(req: Request) {
   const ranked = await rankMatchesForOrg(session.orgId, clientBio, [{ id: candidate.id, biodata: candBio }]);
   const m = ranked[0];
 
+  const pair = await createReciprocalIntroPair({
+    orgId: session.orgId,
+    senderCustomerId: customer.id,
+    targetPoolProfileId: candidate.id,
+    score: m?.score ?? 0,
+    bucket: m?.bucket ?? "low",
+    breakdown: m?.breakdown ?? {},
+    modelAdjusted: m?.modelAdjusted ?? false,
+  });
+
   const suggestion = await prisma.matchSuggestion.upsert({
     where: {
       customerId_poolProfileId: {
@@ -65,7 +76,7 @@ export async function POST(req: Request) {
         poolProfileId: candidate.id,
       },
     },
-    update: { status: "sent" },
+    update: { status: "sent", introPairId: pair.introPairId ?? undefined },
     create: {
       customerId: customer.id,
       poolProfileId: candidate.id,
@@ -74,6 +85,7 @@ export async function POST(req: Request) {
       explanation: "",
       breakdown: JSON.stringify(m?.breakdown ?? {}),
       status: "sent",
+      introPairId: pair.introPairId,
       modelAdjusted: m?.modelAdjusted ?? false,
     },
   });

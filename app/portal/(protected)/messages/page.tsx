@@ -35,7 +35,8 @@ export default function PortalMessagesPage() {
 
   return (
     <section>
-      <h1 className="font-display text-display-m text-ink">Messages</h1>
+      <h1 className="font-display text-display-m text-ink">Matchmaker messages</h1>
+      <p className="mt-2 text-[14px] text-ink-mute">Private thread with your assigned matchmaker.</p>
       <div className="mt-10 space-y-6">
         {messages.map((m) => (
           <div key={m.id} className="border-l-2 border-ink/20 pl-4">
