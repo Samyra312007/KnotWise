@@ -279,9 +279,25 @@ model ScheduledEvent {
 
 ---
 
-## 4.11 P9 — Search metadata
+## 4.11 P9 — Discovery
 
-Materialized view or indexed columns on `PoolProfile`: `searchVector tsvector` (see [ADR 005](adr/005-search-engine.md)).
+```prisma
+model DiscoveryInterest {
+  id            String   @id @default(cuid())
+  customerId    String
+  poolProfileId String
+  status        String   @default("pending")
+  note          String?
+  createdAt     DateTime @default(now())
+
+  @@unique([customerId, poolProfileId])
+}
+```
+
+`PoolProfile.searchText` — denormalized text for Postgres FTS (`gin(to_tsvector(...))`).  
+`OrgMatchingConfig.discoveryEnabled`, `discoveryDailyLimit`.
+
+Migration: `20260623260000_discovery`
 
 ---
 

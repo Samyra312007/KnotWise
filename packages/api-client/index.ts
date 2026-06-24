@@ -100,6 +100,15 @@ export type ThreadMessage = {
   createdAt: string;
 };
 
+export type DiscoverItem = {
+  poolProfileId: string;
+  score: number;
+  bucket: string;
+  verified: boolean;
+  interestStatus: string | null;
+  candidate: IntroReveal;
+};
+
 export type ClientHome = {
   customer: {
     id: string;
@@ -240,6 +249,40 @@ export function createClientApi(config: ApiConfig) {
         {
           method: "PATCH",
           body: JSON.stringify(patch),
+        }
+      ),
+
+    discover: (filters?: {
+      city?: string;
+      religion?: string;
+      ageMin?: number;
+      ageMax?: number;
+      q?: string;
+      cursor?: string;
+      limit?: number;
+    }) => {
+      const params = new URLSearchParams();
+      if (filters?.city) params.set("city", filters.city);
+      if (filters?.religion) params.set("religion", filters.religion);
+      if (filters?.ageMin != null) params.set("ageMin", String(filters.ageMin));
+      if (filters?.ageMax != null) params.set("ageMax", String(filters.ageMax));
+      if (filters?.q) params.set("q", filters.q);
+      if (filters?.cursor) params.set("cursor", filters.cursor);
+      if (filters?.limit != null) params.set("limit", String(filters.limit));
+      const qs = params.toString();
+      return request<{ items: DiscoverItem[]; nextCursor?: string; filters: { cities: string[]; religions: string[] } }>(
+        config,
+        `/api/client/discover${qs ? `?${qs}` : ""}`
+      );
+    },
+
+    expressDiscoverInterest: (poolProfileId: string, note?: string) =>
+      request<{ ok: boolean; interest: { id: string; status: string } }>(
+        config,
+        `/api/client/discover/${poolProfileId}/interest`,
+        {
+          method: "POST",
+          body: JSON.stringify({ note }),
         }
       ),
 

@@ -13,6 +13,7 @@ import type {
   Stage,
   Trinary,
 } from "../lib/types";
+import { buildPoolSearchText } from "../lib/discovery/search-text";
 import {
   CITIES_WEIGHTED,
   COLLEGES,
@@ -336,6 +337,7 @@ async function main() {
         biodata: JSON.stringify(b),
         photoUrl: b.photoUrl ?? null,
         verifiedAt: new Date(),
+        searchText: buildPoolSearchText(b),
       },
     });
   }
@@ -398,6 +400,7 @@ async function main() {
             biodata: JSON.stringify(b),
             photoUrl: b.photoUrl ?? null,
             verifiedAt: new Date(),
+            searchText: buildPoolSearchText(b),
             linkedCustomerId: customer.id,
           },
         });

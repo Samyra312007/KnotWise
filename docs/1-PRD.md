@@ -202,7 +202,7 @@ Each phase: **Problem → Stories → Goals / Non-goals → Acceptance → Metri
 
 **Acceptance:** Feed respects verification tier; rate limits; no contact without mutual path.
 
-**Status:** Spec — [ADR 001](adr/001-hybrid-model.md), [ADR 005](adr/005-search-engine.md)
+**Status:** Shipped — hybrid discovery feed with matchmaker interest queue
 
 ---
 

@@ -248,15 +248,39 @@ All `/api/client/*` routes accept cookie session (web) or Bearer token (mobile).
 
 ---
 
-## 8.11 P9 — Discovery (planned)
+## 8.11 P9 — Discovery (shipped)
 
-### `GET /api/client/discover?city=&ageMin=&cursor=`
+### `GET /api/client/discover?city=&ageMin=&ageMax=&religion=&q=&cursor=&limit=`
 
-Returns ranked pool profiles (limited reveal).
+**Auth:** Client session or Bearer  
+**Response:** Ranked pool profiles with **limited reveal** + `interestStatus` if already expressed.
+
+```json
+{
+  "items": [
+    {
+      "poolProfileId": "…",
+      "score": 82,
+      "bucket": "high",
+      "verified": true,
+      "interestStatus": null,
+      "candidate": { "firstName": "…", "age": 28, "city": "Mumbai", "revealLevel": "limited" }
+    }
+  ],
+  "nextCursor": "…",
+  "filters": { "cities": [], "religions": [] }
+}
+```
+
+Excludes: already introduced, blocked, self. Verified profiles receive score boost.
 
 ### `POST /api/client/discover/[poolProfileId]/interest`
 
-Notifies assigned matchmaker.
+**Body:** `{ "note"?: string }`  
+**Response:** `{ "ok": true, "interest": { "id", "status", "createdAt" } }`  
+**Errors:** `429 RATE_LIMIT`, `409 ALREADY_INTRODUCED`, `403` when discovery disabled
+
+Notifies assigned matchmaker via in-app notification. Does **not** open C2C.
 
 ---
 

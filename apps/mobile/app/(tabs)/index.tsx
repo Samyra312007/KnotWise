@@ -32,6 +32,11 @@ export default function HomeScreen() {
             <Text style={styles.linkText}>View introduced matches</Text>
           </Pressable>
         </Link>
+        <Link href="/(tabs)/discover" asChild>
+          <Pressable style={styles.link}>
+            <Text style={styles.linkText}>Browse discover feed</Text>
+          </Pressable>
+        </Link>
         <Link href="/(tabs)/profile" asChild>
           <Pressable style={styles.linkQuiet}>
             <Text style={styles.linkQuietText}>Your profile</Text>

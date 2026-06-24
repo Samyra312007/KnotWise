@@ -219,7 +219,7 @@ flowchart LR
 
 ---
 
-### P9 — Discovery (optional) | Spec
+### P9 — Discovery (optional) | **Shipped**
 
 | | |
 |---|---|
@@ -227,7 +227,19 @@ flowchart LR
 | **Depends on** | P3 |
 | **Effort** | ~2 weeks |
 
-**Checklist:** Postgres FTS; `/portal/discover`; express interest → matchmaker queue.
+**Checklist**
+
+- [x] `DiscoveryInterest` model + daily rate limit
+- [x] Postgres FTS index on `PoolProfile.searchText`
+- [x] `GET /api/client/discover` with filters + ranked limited reveal
+- [x] `POST /api/client/discover/[poolProfileId]/interest` → matchmaker notification
+- [x] Exclude introduced, blocked, and self profiles
+- [x] Verified profile score boost
+- [x] Portal `/portal/discover`
+- [x] Mobile Discover tab
+- [x] Org `discoveryEnabled` + `discoveryDailyLimit` config
+
+**Done when:** Client browses pool, expresses interest, matchmaker gets notified; no direct C2C.
 
 ---
 

@@ -98,6 +98,7 @@ model Customer {
   blocksReceived        Block[]                @relation("Blocked")
   c2cMessagesSent       C2cMessage[]
   reportsFiled          Report[]               @relation("ReportReporter")
+  discoveryInterests    DiscoveryInterest[]
 
   @@index([orgId])
   @@index([stage])
@@ -147,6 +148,9 @@ model PoolProfile {
   linkedCustomer   Customer? @relation(fields: [linkedCustomerId], references: [id], onDelete: SetNull)
 
   suggestions MatchSuggestion[]
+  discoveryInterests DiscoveryInterest[]
+
+  searchText String?
 
   @@index([orgId])
   @@index([gender])
@@ -431,9 +435,27 @@ model OrgMatchingConfig {
   weightsJson    String
   mlEnabled      Boolean  @default(false)
   blockSameGotra Boolean  @default(true)
+  discoveryEnabled      Boolean @default(true)
+  discoveryDailyLimit   Int     @default(20)
   updatedAt      DateTime @updatedAt
 
   org Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+}
+
+model DiscoveryInterest {
+  id            String   @id @default(cuid())
+  customerId    String
+  poolProfileId String
+  status        String   @default("pending")
+  note          String?
+  createdAt     DateTime @default(now())
+
+  customer    Customer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  poolProfile PoolProfile @relation(fields: [poolProfileId], references: [id], onDelete: Cascade)
+
+  @@unique([customerId, poolProfileId])
+  @@index([customerId, createdAt])
+  @@index([status, createdAt])
 }
 
 model ModelVersion {
