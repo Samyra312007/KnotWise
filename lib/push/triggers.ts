@@ -69,6 +69,37 @@ export async function notifyDateReminder(input: {
   });
 }
 
+export async function notifyScheduleProposal(input: {
+  recipientCustomerId: string;
+  eventId: string;
+  proposerName: string;
+  whenLabel: string;
+}) {
+  await sendPushToCustomer({
+    customerId: input.recipientCustomerId,
+    category: "reminder",
+    title: "New date proposal",
+    body: `${input.proposerName} proposed ${input.whenLabel}. Tap to respond.`,
+    payload: { type: "schedule", eventId: input.eventId, action: "proposed" },
+  });
+}
+
+export async function notifyScheduleAccepted(input: {
+  recipientCustomerId: string;
+  eventId: string;
+  counterpartName: string;
+  whenLabel: string;
+  hasVideo: boolean;
+}) {
+  await sendPushToCustomer({
+    customerId: input.recipientCustomerId,
+    category: "reminder",
+    title: "Date confirmed",
+    body: `${input.counterpartName} confirmed ${input.whenLabel}${input.hasVideo ? " — video link ready" : ""}.`,
+    payload: { type: "schedule", eventId: input.eventId, action: "accepted" },
+  });
+}
+
 export async function notifyIntroPairSent(input: {
   primaryCustomerId: string;
   primarySuggestionId: string;

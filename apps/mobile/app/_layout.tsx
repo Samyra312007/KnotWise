@@ -36,6 +36,8 @@ function RootNavigator() {
         router.push(`/(tabs)/matches/${path.replace("/matches/", "")}` as never);
       } else if (path.startsWith("/chat/")) {
         router.push(`/(tabs)/chat/${path.replace("/chat/", "")}` as never);
+      } else if (path.startsWith("/reminders/")) {
+        router.push(`/(tabs)/schedule/${path.replace("/reminders/", "")}` as never);
       }
     });
   }, [router]);

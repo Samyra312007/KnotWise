@@ -95,6 +95,7 @@ model Customer {
   poolMirror            PoolProfile?
   mutualMatchesAsA      MutualMatch[]          @relation("MutualClientA")
   mutualMatchesAsB      MutualMatch[]          @relation("MutualClientB")
+  schedulesProposed     ScheduledEvent[]       @relation("ScheduleProposer")
   blocksCreated         Block[]                @relation("Blocker")
   blocksReceived        Block[]                @relation("Blocked")
   c2cMessagesSent       C2cMessage[]
@@ -208,10 +209,36 @@ model MutualMatch {
   clientA         Customer        @relation("MutualClientA", fields: [clientAId], references: [id], onDelete: Cascade)
   clientB         Customer        @relation("MutualClientB", fields: [clientBId], references: [id], onDelete: Cascade)
   conversation    Conversation?
+  scheduledEvents ScheduledEvent[]
 
   @@index([clientAId])
   @@index([clientBId])
   @@index([introPairId])
+}
+
+model ScheduledEvent {
+  id             String    @id @default(cuid())
+  mutualMatchId  String
+  proposedById   String
+  startsAt       DateTime
+  endsAt         DateTime?
+  mode           String    @default("video")
+  title          String?
+  location       String?
+  status         String    @default("proposed")
+  videoLink      String?
+  videoRoomId    String?
+  videoProvider  String?
+  reminderSentAt DateTime?
+  respondedAt    DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  mutualMatch MutualMatch @relation(fields: [mutualMatchId], references: [id], onDelete: Cascade)
+  proposedBy  Customer    @relation("ScheduleProposer", fields: [proposedById], references: [id], onDelete: Cascade)
+
+  @@index([mutualMatchId, status])
+  @@index([startsAt, status])
 }
 
 model Note {

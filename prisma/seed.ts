@@ -243,6 +243,7 @@ async function main() {
   await prisma.verificationAttempt.deleteMany();
   await prisma.block.deleteMany();
   await prisma.c2cMessage.deleteMany();
+  await prisma.scheduledEvent.deleteMany();
   await prisma.conversation.deleteMany();
   await prisma.profileRevision.deleteMany();
   await prisma.mutualMatch.deleteMany();

@@ -40,7 +40,12 @@ export function urlsForPayload(payload: PushPayload): { url: string; deepLink: s
       };
     case "reminder":
       return {
-        url: portalUrl("/"),
+        url: portalUrl(`/reminders/${payload.eventId}`),
+        deepLink: deepLink(`portal/reminders/${payload.eventId}`),
+      };
+    case "schedule":
+      return {
+        url: portalUrl(`/reminders/${payload.eventId}`),
         deepLink: deepLink(`portal/reminders/${payload.eventId}`),
       };
   }

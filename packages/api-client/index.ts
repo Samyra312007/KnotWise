@@ -383,8 +383,52 @@ export function createClientApi(config: ApiConfig) {
         method: "POST",
         body: JSON.stringify({ note }),
       }),
+
+    schedules: (mutualMatchId?: string) => {
+      const qs = mutualMatchId ? `?mutualMatchId=${encodeURIComponent(mutualMatchId)}` : "";
+      return request<{ items: ScheduleItem[] }>(config, `/api/client/schedules${qs}`);
+    },
+
+    scheduleDetail: (id: string) => request<{ event: ScheduleItem }>(config, `/api/client/schedules/${id}`),
+
+    proposeSchedule: (body: {
+      mutualMatchId: string;
+      startsAt: string;
+      mode: "in_person" | "video" | "phone";
+      title?: string;
+      location?: string;
+    }) =>
+      request<{ ok: boolean; event: ScheduleItem }>(config, "/api/client/schedules", {
+        method: "POST",
+        body: JSON.stringify(body),
+      }),
+
+    respondSchedule: (id: string, action: "accept" | "decline" | "cancel") =>
+      request<{ ok: boolean; event: ScheduleItem }>(config, `/api/client/schedules/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ action }),
+      }),
   };
 }
+
+export type ScheduleItem = {
+  id: string;
+  mutualMatchId: string;
+  mine: boolean;
+  startsAt: string;
+  endsAt: string;
+  mode: string;
+  title: string;
+  location: string | null;
+  status: string;
+  videoLink: string | null;
+  counterpart: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    photoUrl?: string | null;
+  };
+};
 
 export type ClientApi = ReturnType<typeof createClientApi>;
 

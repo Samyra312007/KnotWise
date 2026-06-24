@@ -16,6 +16,7 @@ export default function TabsLayout() {
       <Tabs.Screen name="matches" options={{ title: "Intros", headerShown: false }} />
       <Tabs.Screen name="discover" options={{ title: "Discover", headerShown: false }} />
       <Tabs.Screen name="chat" options={{ title: "Chat", headerShown: false }} />
+      <Tabs.Screen name="schedule" options={{ title: "Dates", headerShown: false }} />
       <Tabs.Screen name="profile" options={{ title: "Profile", headerShown: false }} />
     </Tabs>
   );

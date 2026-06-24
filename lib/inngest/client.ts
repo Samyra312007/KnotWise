@@ -57,4 +57,13 @@ export const trainOrgModel = inngest.createFunction(
   }
 );
 
-export const inngestFunctions = [deliverIntroEmail, sendMagicLinkEmail, trainOrgModel];
+export const sendScheduleReminders = inngest.createFunction(
+  { id: "send-schedule-reminders" },
+  { cron: "*/15 * * * *" },
+  async () => {
+    const { sendDueScheduleReminders } = await import("@/lib/scheduling/events");
+    return sendDueScheduleReminders();
+  }
+);
+
+export const inngestFunctions = [deliverIntroEmail, sendMagicLinkEmail, trainOrgModel, sendScheduleReminders];

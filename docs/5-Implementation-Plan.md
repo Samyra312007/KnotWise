@@ -314,7 +314,7 @@ flowchart LR
 
 ---
 
-### P13 — Scheduling & video | Spec
+### P13 — Scheduling & video | **Shipped**
 
 | | |
 |---|---|
@@ -322,7 +322,17 @@ flowchart LR
 | **Depends on** | P4 |
 | **Effort** | ~2 weeks |
 
-**Checklist:** `ScheduledEvent`; calendar ICS; Daily.co or Zoom link.
+**Checklist**
+
+- [x] `ScheduledEvent` model + migration
+- [x] `GET/POST /api/client/schedules` + `PATCH /api/client/schedules/[id]`
+- [x] ICS calendar export (`GET /api/client/schedules/[id]/ics`)
+- [x] Daily.co video rooms with `VIDEO_DRY_RUN` default
+- [x] Push + email on propose/accept; 1h reminder via Inngest cron
+- [x] Portal `/portal/schedule`, `/portal/reminders/[id]`, chat embed
+- [x] Mobile Dates tab + deep links
+
+**Done when:** Mutual clients propose/accept dates; video link on accept; reminders fire 1h before.
 
 ---
 

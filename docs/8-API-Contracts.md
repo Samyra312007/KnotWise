@@ -382,9 +382,35 @@ Fetches/caches Kundli (`KUNDLI_DRY_RUN=true` by default). Requires explicit cons
 **Body:** `{ "poolProfileId"?, "suggestionId"?, "signalType": "view"|"open"|"dwell", "dwellMs"?: number }`  
 Feeds preference-learning weight adjustments.
 
+Feeds preference-learning weight adjustments.
+
 ---
 
-## 8.16 Webhooks (shipped)
+## 8.16 P13 — Scheduling & video (shipped)
+
+### `GET /api/client/schedules`
+
+**Auth:** Client session  
+**Query:** `?mutualMatchId=` optional filter  
+**Response:** `{ items: ScheduledEvent[] }` — mutual-only, active matches.
+
+### `POST /api/client/schedules`
+
+**Body:** `{ mutualMatchId, startsAt (ISO), mode: "video"|"phone"|"in_person", title?, location? }`  
+**Rules:** Starts at least 1 hour ahead; in-person requires location.
+
+### `GET/PATCH /api/client/schedules/[id]`
+
+**PATCH body:** `{ action: "accept"|"decline"|"cancel" }`  
+On accept for video mode, creates Daily.co room (`VIDEO_DRY_RUN=true` by default).
+
+### `GET /api/client/schedules/[id]/ics`
+
+**Response:** `text/calendar` attachment for accepted events.
+
+---
+
+## 8.17 Webhooks (shipped)
 
 | Path | Provider |
 |------|----------|

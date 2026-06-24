@@ -282,19 +282,30 @@ model MatchExperiment { ... }
 
 ---
 
-## 4.10 P13 — Scheduling
+## 4.10 P13 — Scheduling (shipped)
 
 ```prisma
 model ScheduledEvent {
-  id            String   @id @default(cuid())
-  mutualMatchId String
-  proposedBy    String
-  startsAt      DateTime
-  status        String   @default("proposed")
-  videoLink     String?
-  createdAt     DateTime @default(now())
+  id             String    @id @default(cuid())
+  mutualMatchId  String
+  proposedById   String
+  startsAt       DateTime
+  endsAt         DateTime?
+  mode           String    @default("video")
+  title          String?
+  location       String?
+  status         String    @default("proposed")
+  videoLink      String?
+  videoRoomId    String?
+  videoProvider  String?
+  reminderSentAt DateTime?
+  respondedAt    DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 }
 ```
+
+Migration: `20260623300000_scheduling`
 
 ---
 

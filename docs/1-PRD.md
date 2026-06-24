@@ -238,7 +238,7 @@ Each phase: **Problem → Stories → Goals / Non-goals → Acceptance → Metri
 **Goals:** Date scheduling; calendar export; optional video link (Daily.co / Zoom).  
 **Acceptance:** Reminders via push/email; mutual-only scheduling.
 
-**Status:** Spec
+**Status:** Shipped — date proposals, ICS export, Daily.co video (dry-run default), push/email reminders
 
 ---
 

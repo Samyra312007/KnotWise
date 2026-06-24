@@ -26,6 +26,7 @@ export default async function PortalProtectedLayout({ children }: { children: Re
             <Link href="/portal/matches">Matches</Link>
             <Link href="/portal/discover">Discover</Link>
             <Link href="/portal/chat">Chat</Link>
+            <Link href="/portal/schedule">Dates</Link>
             <Link href="/portal/messages">Matchmaker</Link>
             <Link href="/portal/profile">Profile</Link>
             <Link href="/portal/family">Family</Link>

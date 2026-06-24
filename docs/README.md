@@ -124,8 +124,8 @@ Every remaining consumer-dating gap maps to a phase and primary doc.
 | Direct client-to-client discovery (browse/search/swipe) | P9 | PRD §P9, Flow §II.5, ADR 001 | Shipped |
 | Direct client-to-client chat after mutual interest | P4 | PRD §P4, doc 17, ADR 002 | Shipped |
 | Coordinated intro: mutual opt-in → contact reveal | P3 | PRD §P3, Flow §II.2–3, Schema §P3 | Shipped |
-| In-app or integrated video / voice calls | P13 | PRD §P13, Flow §II.7 | Spec |
-| Date scheduling and reminders | P13 | PRD §P13, Schema §P13 | Spec |
+| In-app or integrated video / voice calls | P13 | PRD §P13, Flow §II.7 | Shipped |
+| Date scheduling and reminders | P13 | PRD §P13, Schema §P13 | Shipped |
 | Family / guardian accounts | P10 | PRD §P10, ADR 007 | Shipped |
 
 ### Trust & safety
