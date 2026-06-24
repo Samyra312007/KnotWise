@@ -1,5 +1,6 @@
 import { Resend } from "resend";
 import type { EmailPayload, EmailProvider, EmailSendResult } from "./provider";
+import { isEmailSuppressed } from "@/lib/scale/email-suppression";
 
 export class ResendProvider implements EmailProvider {
   private client: Resend | null;
@@ -9,6 +10,12 @@ export class ResendProvider implements EmailProvider {
   }
 
   async send(payload: EmailPayload): Promise<EmailSendResult> {
+    if (process.env.EMAIL_DRY_RUN !== "true" && this.client) {
+      const suppressed = await isEmailSuppressed(payload.to);
+      if (suppressed) {
+        return { status: "failed", errorMessage: "Recipient suppressed due to bounce or complaint." };
+      }
+    }
     if (process.env.EMAIL_DRY_RUN === "true" || !this.client) {
       return { status: "sent", providerId: `dry-run-${Date.now()}` };
     }

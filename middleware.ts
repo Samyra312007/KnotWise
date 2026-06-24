@@ -1,5 +1,11 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import {
+  checkRateLimitSync,
+  clientIpFromHeaders,
+  rateLimitKeyForRequest,
+} from "@/lib/scale/rate-limit";
+import { newRequestId } from "@/lib/scale/logger";
 
 const PUBLIC_PATHS = [
   "/login",
@@ -10,6 +16,7 @@ const PUBLIC_PATHS = [
   "/portal/delegate/login",
   "/portal/delegate/verify",
   "/portal/delegate/accept",
+  "/legal",
   "/api/auth/login",
   "/api/auth/logout",
   "/api/signup/bureau",
@@ -24,10 +31,49 @@ const PUBLIC_PATHS = [
   "/api/webhooks/razorpay",
   "/api/inngest",
   "/api/uploadthing",
+  "/api/health",
+  "/api/openapi",
 ];
 
 function isPublic(pathname: string): boolean {
   return PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+}
+
+function applyRateLimit(req: NextRequest): NextResponse | null {
+  if (!req.nextUrl.pathname.startsWith("/api/")) return null;
+  if (req.nextUrl.pathname === "/api/health" || req.nextUrl.pathname === "/api/openapi") return null;
+
+  const ip = clientIpFromHeaders(req.headers);
+  const authenticated =
+    req.cookies.has("knotwise_session") ||
+    req.cookies.has("knotwise_client_session") ||
+    req.cookies.has("knotwise_delegate_session") ||
+    Boolean(req.headers.get("authorization")?.startsWith("Bearer "));
+  const actorId =
+    req.cookies.get("knotwise_client_session")?.value ??
+    req.cookies.get("knotwise_session")?.value ??
+    req.headers.get("authorization")?.slice(7, 24);
+
+  const { key, limit } = rateLimitKeyForRequest({
+    ip,
+    pathname: req.nextUrl.pathname,
+    authenticated,
+    actorId: actorId ?? undefined,
+  });
+  const result = checkRateLimitSync(key, limit);
+  if (result.ok) return null;
+
+  return NextResponse.json(
+    { error: { code: "RATE_LIMIT", message: "Too many requests. Try again later." } },
+    {
+      status: 429,
+      headers: {
+        "Retry-After": String(Math.ceil((result.resetAt - Date.now()) / 1000)),
+        "X-RateLimit-Limit": String(result.limit),
+        "X-RateLimit-Remaining": String(result.remaining),
+      },
+    }
+  );
 }
 
 export function middleware(req: NextRequest) {
@@ -41,8 +87,18 @@ export function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
+  const requestId = req.headers.get("x-request-id") ?? newRequestId();
+  const rateLimited = applyRateLimit(req);
+  if (rateLimited) {
+    rateLimited.headers.set("x-request-id", requestId);
+    return rateLimited;
+  }
+
+  const response = NextResponse.next();
+  response.headers.set("x-request-id", requestId);
+
   if (isPublic(pathname)) {
-    return NextResponse.next();
+    return response;
   }
 
   const hasMatchmakerSession = req.cookies.has("knotwise_session");
@@ -61,11 +117,11 @@ export function middleware(req: NextRequest) {
     ) {
       return NextResponse.redirect(new URL("/portal/login", req.url));
     }
-    return NextResponse.next();
+    return response;
   }
 
   if (pathname.startsWith("/signup")) {
-    return NextResponse.next();
+    return response;
   }
 
   if (
@@ -77,10 +133,10 @@ export function middleware(req: NextRequest) {
     if (!hasMatchmakerSession) {
       return NextResponse.redirect(new URL("/login", req.url));
     }
-    return NextResponse.next();
+    return response;
   }
 
-  return NextResponse.next();
+  return response;
 }
 
 export const config = {

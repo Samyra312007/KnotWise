@@ -265,7 +265,7 @@ Each phase: **Problem → Stories → Goals / Non-goals → Acceptance → Metri
 **Goals:** CDN; backups; monitoring; rate limits; email bounce handling.  
 **Acceptance:** Runbooks; p95 API SLO; load test report.
 
-**Status:** Spec — [`11-Infrastructure-Deployment.md`](11-Infrastructure-Deployment.md)
+**Status:** Shipped — rate limiting, health/scale APIs, email suppression, CDN helper, Sentry hook, CI, k6 load tests
 
 ---
 

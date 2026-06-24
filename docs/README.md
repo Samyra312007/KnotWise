@@ -38,7 +38,10 @@
 | Consumer P10 | Family delegates | PRD §P10, ADR 007 | Shipped |
 | Consumer P11 | Payments India | PRD §P11, doc 16, ADR 004 | Shipped |
 | Consumer P12 | Matching v2 + Kundli | PRD §P12, doc 15, ADR 006 | Shipped |
-| Consumer P13–P16 | Real dating/matrimonial product | PRD §P13–P16, docs 8–17 | Spec only |
+| Consumer P13 | Scheduling & video | PRD §P13, doc 17 | Shipped |
+| Consumer P14 | Analytics & ops CRM | PRD §P14, doc 13 | Shipped |
+| Consumer P15 | Compliance hardening | PRD §P15, doc 10 | Shipped |
+| Consumer P16 | Production scale | PRD §P16, doc 11 | Shipped |
 
 ---
 
@@ -60,7 +63,10 @@
 | P10 family delegates | Shipped (`/portal/family`, `/portal/delegate`, `lib/family/*`) |
 | P11 payments India | Shipped (`/portal/billing`, Razorpay, `/signup/bureau`) |
 | P12 matching v2 + Kundli | Shipped (`lib/matching/v2/*`, `/portal/astro`, bias audit) |
-| P13–P16 consumer features | Spec only (this library) |
+| P13 scheduling & video | Shipped (`lib/scheduling/*`, Daily.co, ICS) |
+| P14 analytics & ops CRM | Shipped (`lib/analytics/*`, `/ops/analytics`, CRM) |
+| P15 compliance hardening | Shipped (`lib/compliance/*`, `/legal/*`, data export/delete) |
+| P16 production scale | Shipped (`lib/scale/*`, `/api/health`, rate limits, CI) |
 
 ---
 
@@ -171,10 +177,10 @@ Every remaining consumer-dating gap maps to a phase and primary doc.
 | Gap | Phase | Primary doc | Status |
 |-----|-------|-------------|--------|
 | True realtime messaging | P6 | doc 17, ADR 002 | Shipped |
-| Production PostgreSQL hosting, backups, monitoring | P16 | doc 11 | Spec |
-| CDN for photos/videos | P16 | doc 11, TRD §2.10 | Spec |
-| Email/SMS at scale + bounce handling | P16 | doc 17 | Spec |
-| Rate limiting, abuse prevention, audit compliance | P16 | doc 9, doc 11 | Spec |
+| Production PostgreSQL hosting, backups, monitoring | P16 | doc 11 | Shipped |
+| CDN for photos/videos | P16 | doc 11, TRD §2.10 | Shipped |
+| Email/SMS at scale + bounce handling | P16 | doc 17 | Shipped |
+| Rate limiting, abuse prevention, audit compliance | P16 | doc 9, doc 11 | Shipped |
 
 ### Media & profiles
 

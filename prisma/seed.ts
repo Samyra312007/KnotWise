@@ -265,6 +265,7 @@ async function main() {
   await prisma.dataExportRequest.deleteMany();
   await prisma.dataDeletionRequest.deleteMany();
   await prisma.clientConsent.deleteMany();
+  await prisma.emailSuppression.deleteMany();
   await prisma.preferenceSignal.deleteMany();
   await prisma.analyticsEvent.deleteMany();
   await prisma.crmLead.deleteMany();

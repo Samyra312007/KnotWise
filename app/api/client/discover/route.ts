@@ -3,17 +3,23 @@ import { requireApiClientSession } from "@/lib/auth/api";
 import { prisma } from "@/lib/db";
 import { getDiscoveryFeed } from "@/lib/discovery/feed";
 import { PROFILE_CITIES, RELIGIONS } from "@/lib/profile/options";
+import { observeResponse } from "@/lib/scale/observe";
 
 export async function GET(req: Request) {
+  const started = Date.now();
   const session = await requireApiClientSession();
-  if (session instanceof NextResponse) return session;
+  if (session instanceof NextResponse) return observeResponse("/api/client/discover", started, session);
 
   const customer = await prisma.customer.findUnique({
     where: { id: session.customerId },
     select: { orgId: true },
   });
   if (!customer) {
-    return NextResponse.json({ error: { code: "NOT_FOUND", message: "Not found." } }, { status: 404 });
+    return observeResponse(
+      "/api/client/discover",
+      started,
+      NextResponse.json({ error: { code: "NOT_FOUND", message: "Not found." } }, { status: 404 })
+    );
   }
 
   const url = new URL(req.url);
@@ -44,24 +50,36 @@ export async function GET(req: Request) {
       limit: Number.isFinite(limit) ? limit : undefined,
     });
 
-    return NextResponse.json({
-      ...feed,
-      filters: {
-        cities: PROFILE_CITIES,
-        religions: RELIGIONS,
-      },
-    });
+    return observeResponse(
+      "/api/client/discover",
+      started,
+      NextResponse.json({
+        ...feed,
+        filters: {
+          cities: PROFILE_CITIES,
+          religions: RELIGIONS,
+        },
+      })
+    );
   } catch (err) {
     if (err instanceof Error && err.message === "DISABLED") {
-      return NextResponse.json(
-        { error: { code: "FORBIDDEN", message: "Discovery is not enabled for your bureau." } },
-        { status: 403 }
+      return observeResponse(
+        "/api/client/discover",
+        started,
+        NextResponse.json(
+          { error: { code: "FORBIDDEN", message: "Discovery is not enabled for your bureau." } },
+          { status: 403 }
+        )
       );
     }
     if (err instanceof Error && err.message === "PREMIUM_REQUIRED") {
-      return NextResponse.json(
-        { error: { code: "PREMIUM_REQUIRED", message: "Discovery requires a Premium plan." } },
-        { status: 403 }
+      return observeResponse(
+        "/api/client/discover",
+        started,
+        NextResponse.json(
+          { error: { code: "PREMIUM_REQUIRED", message: "Discovery requires a Premium plan." } },
+          { status: 403 }
+        )
       );
     }
     throw err;

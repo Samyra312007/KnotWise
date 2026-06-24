@@ -377,6 +377,26 @@ Migration: `20260623260000_discovery`
 
 ---
 
+## 4.14 P16 — Production scale
+
+```prisma
+model EmailSuppression {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  reason       String
+  source       String?
+  metadata     String?
+  suppressedAt DateTime @default(now())
+}
+```
+
+Resend bounce/complaint webhooks upsert suppressions and disable `ClientAccount.notifyEmail`.  
+Media CDN via `MEDIA_CDN_URL` rewrites UploadThing hosts in `buildIntroReveal`.
+
+Migration: `20260623330000_production_scale`
+
+---
+
 ## 4.12 API types
 
 Shared biodata: [`lib/types.ts`](../lib/types.ts) — `Biodata`, `PartnerPreferences`, `Stage`.

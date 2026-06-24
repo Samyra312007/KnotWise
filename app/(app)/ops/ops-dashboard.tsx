@@ -144,6 +144,12 @@ export function OpsDashboard({ role }: { role: string }) {
       >
         Analytics & CRM →
       </Link>
+      <Link
+        href="/ops/scale"
+        className="mt-2 block font-mono text-[10px] uppercase tracking-[0.18em] text-vermilion"
+      >
+        Production scale →
+      </Link>
 
       <div className="mt-12">
         <h2 className="font-mono text-[11px] uppercase tracking-[0.18em] text-ink-mute mb-6">

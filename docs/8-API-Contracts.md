@@ -473,10 +473,35 @@ Public pages: `/legal/terms`, `/legal/privacy`.
 
 ---
 
+## 8.20 P16 — Production scale (shipped)
+
+### `GET /api/health`
+
+**Auth:** Public  
+**Response:** `{ status, checks: { database, redisConfigured, sentryEnabled, cdnEnabled }, uptimeSeconds }`
+
+### `GET /api/ops/scale`
+
+**Auth:** Ops session  
+**Response:** Health, 15-minute p95 route metrics, infrastructure flags, masked email suppressions.
+
+### `GET /api/openapi`
+
+**Auth:** Public  
+**Response:** OpenAPI 3.1 JSON spec for core client and ops routes.
+
+**Rate limits:** Middleware returns `429 RATE_LIMIT` at 100 req/min/IP (public) or 1000 req/min (authenticated).
+
+**Email suppression:** Resend `email.bounced` / `email.complained` webhooks add to `EmailSuppression` and disable `notifyEmail`.
+
+**CDN:** Set `MEDIA_CDN_URL` to rewrite UploadThing URLs in limited/full reveals.
+
+---
+
 ## Acceptance criteria
 
-- [ ] Each P2–P11 phase adds §8.x section before implementation
-- [ ] OpenAPI export optional P16
+- [x] Each P2–P11 phase adds §8.x section before implementation
+- [x] OpenAPI export optional P16
 
 ## Open questions
 

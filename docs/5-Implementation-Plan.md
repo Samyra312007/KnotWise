@@ -380,7 +380,7 @@ flowchart LR
 
 ---
 
-### P16 — Production scale | Spec
+### P16 — Production scale | **Shipped**
 
 | | |
 |---|---|
@@ -388,7 +388,20 @@ flowchart LR
 | **Depends on** | P5 |
 | **Effort** | ~2 weeks |
 
-**Checklist:** See [`11-Infrastructure-Deployment.md`](11-Infrastructure-Deployment.md).
+**Checklist**
+
+- [x] Edge middleware rate limits (100/min public, 1000/min auth)
+- [x] `EmailSuppression` model + Resend bounce/complaint webhook suppress list
+- [x] `GET /api/health` liveness + dependency checks
+- [x] `GET /api/ops/scale` SLO metrics + suppression summary
+- [x] `GET /api/openapi` JSON spec export
+- [x] CDN media URL helper (`MEDIA_CDN_URL`) on profile reveals
+- [x] Optional Sentry via `SENTRY_DSN` + `instrumentation.ts`
+- [x] GitHub Actions CI (typecheck, test, migrate)
+- [x] k6 load test scripts (`loadtests/`)
+- [x] Ops `/ops/scale` dashboard
+
+**Done when:** Health endpoint reports status; bounces suppress sends; rate limits return 429; ops sees p95 SLOs.
 
 ---
 

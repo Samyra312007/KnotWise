@@ -905,3 +905,14 @@ model DataDeletionRequest {
 
   @@index([status, scheduledFor])
 }
+
+model EmailSuppression {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  reason       String
+  source       String?
+  metadata     String?
+  suppressedAt DateTime @default(now())
+
+  @@index([suppressedAt])
+}

@@ -3,6 +3,7 @@ import { z } from "zod";
 import { requireApiClientSession } from "@/lib/auth/api";
 import { prisma } from "@/lib/db";
 import { listConversationMessages, sendConversationMessage } from "@/lib/c2c/messages";
+import { observeResponse } from "@/lib/scale/observe";
 
 export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const session = await requireApiClientSession();
@@ -42,15 +43,20 @@ const sendSchema = z.object({
 });
 
 export async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {
+  const started = Date.now();
   const session = await requireApiClientSession();
-  if (session instanceof NextResponse) return session;
+  if (session instanceof NextResponse) return observeResponse("/api/c2c/messages", started, session);
   const { id } = await ctx.params;
 
   let parsed;
   try {
     parsed = sendSchema.parse(await req.json());
   } catch {
-    return NextResponse.json({ error: { code: "INVALID_INPUT", message: "Invalid message." } }, { status: 400 });
+    return observeResponse(
+      "/api/c2c/messages",
+      started,
+      NextResponse.json({ error: { code: "INVALID_INPUT", message: "Invalid message." } }, { status: 400 })
+    );
   }
 
   const customer = await prisma.customer.findUnique({
@@ -58,7 +64,11 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     select: { orgId: true },
   });
   if (!customer) {
-    return NextResponse.json({ error: { code: "NOT_FOUND", message: "Not found." } }, { status: 404 });
+    return observeResponse(
+      "/api/c2c/messages",
+      started,
+      NextResponse.json({ error: { code: "NOT_FOUND", message: "Not found." } }, { status: 404 })
+    );
   }
 
   try {
@@ -70,35 +80,55 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
       body: parsed.body,
     });
 
-    return NextResponse.json({
-      message: {
-        id: message.id,
-        body: message.body,
-        senderId: message.senderId,
-        mine: true,
-        createdAt: message.createdAt.toISOString(),
-        readAt: null,
-      },
-    });
+    return observeResponse(
+      "/api/c2c/messages",
+      started,
+      NextResponse.json({
+        message: {
+          id: message.id,
+          body: message.body,
+          senderId: message.senderId,
+          mine: true,
+          createdAt: message.createdAt.toISOString(),
+          readAt: null,
+        },
+      })
+    );
   } catch (err) {
     if (!(err instanceof Error)) throw err;
     if (err.message === "NOT_FOUND") {
-      return NextResponse.json({ error: { code: "NOT_FOUND", message: "Conversation not found." } }, { status: 404 });
+      return observeResponse(
+        "/api/c2c/messages",
+        started,
+        NextResponse.json({ error: { code: "NOT_FOUND", message: "Conversation not found." } }, { status: 404 })
+      );
     }
     if (err.message === "BLOCKED") {
-      return NextResponse.json(
-        { error: { code: "BLOCKED", message: "You cannot message this person." } },
-        { status: 403 }
+      return observeResponse(
+        "/api/c2c/messages",
+        started,
+        NextResponse.json(
+          { error: { code: "BLOCKED", message: "You cannot message this person." } },
+          { status: 403 }
+        )
       );
     }
     if (err.message === "CONTENT_BLOCKED") {
-      return NextResponse.json(
-        { error: { code: "CONTENT_BLOCKED", message: "Message contains language that is not allowed." } },
-        { status: 400 }
+      return observeResponse(
+        "/api/c2c/messages",
+        started,
+        NextResponse.json(
+          { error: { code: "CONTENT_BLOCKED", message: "Message contains language that is not allowed." } },
+          { status: 400 }
+        )
       );
     }
     if (err.message === "TOO_LONG") {
-      return NextResponse.json({ error: { code: "INVALID_INPUT", message: "Message too long." } }, { status: 400 });
+      return observeResponse(
+        "/api/c2c/messages",
+        started,
+        NextResponse.json({ error: { code: "INVALID_INPUT", message: "Message too long." } }, { status: 400 })
+      );
     }
     throw err;
   }

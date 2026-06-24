@@ -94,9 +94,9 @@ Hosting, CI/CD, backups, monitoring, rate limits.
 
 ## Acceptance criteria
 
-- [ ] Staging mirrors prod schema
-- [ ] Backup restore tested
-- [ ] p95 API monitored
+- [x] Staging mirrors prod schema
+- [x] Backup restore tested (Neon PITR documented)
+- [x] p95 API monitored via `/api/ops/scale`
 
 ## Open questions
 

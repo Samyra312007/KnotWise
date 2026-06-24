@@ -1,5 +1,6 @@
 import type { Biodata } from "@/lib/types";
 import { ageFromDOB } from "@/lib/types";
+import { cdnMediaUrl } from "@/lib/scale/cdn";
 
 export type RevealLevel = "limited" | "full";
 
@@ -54,7 +55,7 @@ export function buildIntroReveal(input: {
     age: ageFromDOB(biodata.dateOfBirth),
     city: biodata.city,
     country: biodata.country,
-    photoUrl: photoUrl ?? biodata.photoUrl,
+    photoUrl: cdnMediaUrl(photoUrl ?? biodata.photoUrl) ?? undefined,
     bioHeadline: bioHeadline(biodata.bio),
     score,
     bucket,

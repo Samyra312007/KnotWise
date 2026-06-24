@@ -90,10 +90,10 @@ Realtime C2C, push, SMS/email delivery, bounce handling.
 
 - [x] C2C realtime delivery via Pusher or SSE (P6)
 - [x] Matchmaker thread SSE + optional Pusher (P6)
-- [ ] C2C p95 delivery <2s at 1k concurrent (load test P16)
+- [x] C2C p95 delivery <2s at 1k concurrent (load test P16)
 - [x] Push delivery pipeline with preferences and dry-run (P7)
 - [ ] Push received on device within 10s (device QA P8)
-- [ ] Bounce suppresses future sends (P16)
+- [x] Bounce suppresses future sends (P16)
 
 ## Open questions
 
