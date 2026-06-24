@@ -243,7 +243,7 @@ flowchart LR
 
 ---
 
-### P10 — Family delegates | Spec
+### P10 — Family delegates | **Shipped**
 
 | | |
 |---|---|
@@ -251,7 +251,19 @@ flowchart LR
 | **Depends on** | P3 |
 | **Effort** | ~2 weeks |
 
-**Checklist:** `FamilyDelegate`; delegate portal; [ADR 007](adr/007-family-delegate-model.md).
+**Checklist**
+
+- [x] `FamilyDelegate` + `DelegateMagicLinkToken` + `DelegateAuthToken`
+- [x] `ClientAccount.delegateApproverOptIn` for approver age rule
+- [x] `POST/GET/DELETE /api/family/delegates` + settings + accept
+- [x] Delegate auth (magic link + Bearer) + `/api/family/delegate/*`
+- [x] Observer vs approver permission matrix ([ADR 007](adr/007-family-delegate-model.md))
+- [x] Delegate intro feedback with `actorType: delegate` audit
+- [x] Portal `/portal/family` + `/portal/delegate`
+- [x] Mobile family delegate management screen
+- [x] Max 3 delegates; limited reveal until mutual contact share
+
+**Done when:** Client invites delegate; delegate views intros; approver can accept/decline; actions audited.
 
 ---
 

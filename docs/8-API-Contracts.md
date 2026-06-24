@@ -284,13 +284,50 @@ Notifies assigned matchmaker via in-app notification. Does **not** open C2C.
 
 ---
 
-## 8.12 P10 — Family (planned)
+## 8.12 P10 — Family (shipped)
 
-### `POST /api/family/delegates/invite`
+**Auth:** Client session or Bearer for client routes; delegate session or Bearer for delegate routes.
 
-**Body:** `{ "email": string, "role": "observer" | "approver" }`
+### `GET /api/family/delegates`
+
+Lists active invites for the signed-in client. Includes `delegateApproverOptIn` and `maxDelegates` (3).
+
+### `POST /api/family/delegates`
+
+**Body:** `{ "email": string, "role": "observer" | "approver" }`  
+**Response:** `{ "ok": true, "delegate": { "id", "email", "role", "status", "invitedAt" } }`  
+**Errors:** `409 MAX_DELEGATES`, `409 ALREADY_INVITED`, `403 APPROVER_NOT_ALLOWED` (age ≥ 35 without opt-in)
+
+Sends invite email with `/portal/delegate/accept?token=…`.
+
+### `DELETE /api/family/delegates/[id]`
+
+Revokes an invite or accepted delegate.
+
+### `PATCH /api/family/delegates/settings`
+
+**Body:** `{ "delegateApproverOptIn": boolean }` — allows approver role for clients aged 35+.
 
 ### `POST /api/family/delegates/accept`
+
+**Body:** `{ "token": string }` — accepts invite, establishes delegate session.
+
+### `POST /api/family/delegate/auth/magic-link`
+
+**Body:** `{ "email": string }` — returning delegate sign-in.
+
+### `GET /api/family/delegate/me`
+
+Delegate profile + client summary (stage, completeness, `canApprove`).
+
+### `GET /api/family/delegate/matches`
+
+Limited-reveal intros for the linked client (contact hidden until mutual + contact share).
+
+### `POST /api/family/delegate/matches/[id]/feedback`
+
+**Body:** `{ "decision": "accept" | "decline", "reason"?: string }`  
+**Auth:** Approver delegate only. Logs `AuditEvent` with `actorType: delegate`.
 
 ---
 

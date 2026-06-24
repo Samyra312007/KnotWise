@@ -97,7 +97,7 @@ stateDiagram-v2
 ## 7.4 Acceptance criteria
 
 - [ ] All terms in PRD P1–P16 link back to glossary entries
-- [ ] Permission matrix updated when P3, P4, P10 ship
+- [x] Permission matrix updated when P3, P4, P10 ship
 
 ## 7.5 Open questions
 

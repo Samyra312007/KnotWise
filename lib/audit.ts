@@ -3,7 +3,7 @@ import { prisma } from "@/lib/db";
 export async function logAuditEvent(input: {
   orgId: string;
   actorId: string;
-  actorType: "matchmaker" | "client" | "system";
+  actorType: "matchmaker" | "client" | "system" | "delegate";
   action: string;
   entityType: string;
   entityId: string;

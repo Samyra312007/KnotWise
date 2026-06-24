@@ -53,6 +53,11 @@ export default function ProfileScreen() {
             <Text style={styles.linkText}>Matchmaker messages</Text>
           </Pressable>
         </Link>
+        <Link href="/(tabs)/profile/family" asChild>
+          <Pressable style={styles.link}>
+            <Text style={styles.linkText}>Family delegates</Text>
+          </Pressable>
+        </Link>
         <Pressable style={styles.logout} onPress={() => void signOut()}>
           <Text style={styles.logoutText}>Log out</Text>
         </Pressable>

@@ -64,6 +64,8 @@ export async function submitIntroFeedback(input: {
   clientId: string;
   decision: IntroDecision;
   reason?: string;
+  actorType?: "client" | "delegate";
+  actorId?: string;
 }) {
   const suggestion = await prisma.matchSuggestion.findFirst({
     where: {
@@ -91,8 +93,8 @@ export async function submitIntroFeedback(input: {
 
   await logAuditEvent({
     orgId: input.orgId,
-    actorId: input.clientId,
-    actorType: "client",
+    actorId: input.actorId ?? input.clientId,
+    actorType: input.actorType ?? "client",
     action: input.decision === "accept" ? "intro.accepted" : "intro.declined",
     entityType: "match_suggestion",
     entityId: suggestion.id,

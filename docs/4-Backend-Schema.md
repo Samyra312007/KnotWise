@@ -228,20 +228,29 @@ model NotificationPreference {
 
 ---
 
-## 4.8 P10 — Family delegates
+## 4.8 P10 — Family delegates (shipped)
 
 ```prisma
 model FamilyDelegate {
-  id         String   @id @default(cuid())
-  customerId String
-  email      String
-  role       String
-  invitedAt  DateTime @default(now())
-  acceptedAt DateTime?
+  id              String    @id @default(cuid())
+  customerId      String
+  email           String
+  role            String
+  status          String    @default("invited")
+  invitedAt       DateTime  @default(now())
+  acceptedAt      DateTime?
+  revokedAt       DateTime?
+  inviteTokenHash String?
 
   @@unique([customerId, email])
 }
+
+model ClientAccount {
+  delegateApproverOptIn Boolean @default(false)
+}
 ```
+
+Delegate magic-link and mobile Bearer tokens: `DelegateMagicLinkToken`, `DelegateAuthToken`.
 
 ---
 

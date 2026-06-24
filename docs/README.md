@@ -35,7 +35,8 @@
 | Consumer P7 | Push notifications | PRD §P7, doc 17, doc 14 | Shipped |
 | Consumer P8 | Mobile app v1 | PRD §P8, doc 14 | Shipped |
 | Consumer P9 | Discovery feed | PRD §P9, ADR 001/005 | Shipped |
-| Consumer P10–P16 | Real dating/matrimonial product | PRD §P10–P16, docs 8–17 | Spec only |
+| Consumer P10 | Family delegates | PRD §P10, ADR 007 | Shipped |
+| Consumer P11–P16 | Real dating/matrimonial product | PRD §P11–P16, docs 8–17 | Spec only |
 
 ---
 
@@ -54,7 +55,8 @@
 | P7 push notifications | Shipped (`lib/push/*`, Expo, device tokens, preferences) |
 | P8 mobile app v1 | Shipped (`apps/mobile/`, client bearer auth, Expo Router) |
 | P9 discovery feed | Shipped (`/portal/discover`, `lib/discovery/*`) |
-| P10–P16 consumer features | Spec only (this library) |
+| P10 family delegates | Shipped (`/portal/family`, `/portal/delegate`, `lib/family/*`) |
+| P11–P16 consumer features | Spec only (this library) |
 
 ---
 
@@ -120,7 +122,7 @@ Every remaining consumer-dating gap maps to a phase and primary doc.
 | Coordinated intro: mutual opt-in → contact reveal | P3 | PRD §P3, Flow §II.2–3, Schema §P3 | Shipped |
 | In-app or integrated video / voice calls | P13 | PRD §P13, Flow §II.7 | Spec |
 | Date scheduling and reminders | P13 | PRD §P13, Schema §P13 | Spec |
-| Family / guardian accounts | P10 | PRD §P10, ADR 007 | Spec |
+| Family / guardian accounts | P10 | PRD §P10, ADR 007 | Shipped |
 
 ### Trust & safety
 

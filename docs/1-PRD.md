@@ -211,7 +211,7 @@ Each phase: **Problem → Stories → Goals / Non-goals → Acceptance → Metri
 **Goals:** Invite observer/approver delegates; audit actions.  
 **Acceptance:** Delegate login; permission matrix per [ADR 007](adr/007-family-delegate-model.md).
 
-**Status:** Spec
+**Status:** Shipped — family delegate invites, delegate portal, observer/approver roles, audit trail
 
 ---
 

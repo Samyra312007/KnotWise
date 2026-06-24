@@ -55,6 +55,13 @@ export type ClientSession = SessionData & {
   email: string;
 };
 
+export type DelegateSession = SessionData & {
+  delegateId: string;
+  customerId: string;
+  delegateRole: string;
+  email: string;
+};
+
 export async function requireApiClientSession(): Promise<ClientSession | NextResponse<ApiError>> {
   const headerStore = await headers();
   const auth = headerStore.get("authorization");
@@ -69,6 +76,23 @@ export async function requireApiClientSession(): Promise<ClientSession | NextRes
     return unauthorized("Client sign-in required.");
   }
   return session as ClientSession;
+}
+
+export async function requireApiDelegateSession(): Promise<DelegateSession | NextResponse<ApiError>> {
+  const headerStore = await headers();
+  const auth = headerStore.get("authorization");
+  if (auth?.startsWith("Bearer ")) {
+    const { validateDelegateMobileToken } = await import("@/lib/auth/delegate-mobile");
+    const bearer = await validateDelegateMobileToken(auth.slice(7));
+    if (bearer) return bearer;
+  }
+
+  const { getDelegateSession } = await import("@/lib/auth/session");
+  const session = await getDelegateSession();
+  if (!session.delegateId || !session.customerId || session.userType !== "delegate") {
+    return unauthorized("Delegate sign-in required.");
+  }
+  return session as DelegateSession;
 }
 
 export async function requireBearerSession(req: Request): Promise<MatchmakerSession | NextResponse<ApiError>> {

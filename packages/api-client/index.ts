@@ -310,6 +310,43 @@ export function createClientApi(config: ApiConfig) {
           body: JSON.stringify(prefs),
         }
       ),
+
+    familyDelegates: () =>
+      request<{
+        delegates: Array<{
+          id: string;
+          email: string;
+          role: string;
+          status: string;
+          invitedAt: string;
+          acceptedAt: string | null;
+        }>;
+        maxDelegates: number;
+        delegateApproverOptIn: boolean;
+      }>(config, "/api/family/delegates"),
+
+    inviteFamilyDelegate: (email: string, role: "observer" | "approver") =>
+      request<{ ok: boolean; delegate: { id: string; email: string; role: string; status: string } }>(
+        config,
+        "/api/family/delegates",
+        {
+          method: "POST",
+          body: JSON.stringify({ email, role }),
+        }
+      ),
+
+    revokeFamilyDelegate: (id: string) =>
+      request<{ ok: boolean }>(config, `/api/family/delegates/${id}`, { method: "DELETE" }),
+
+    updateFamilyDelegateSettings: (delegateApproverOptIn: boolean) =>
+      request<{ ok: boolean; delegateApproverOptIn: boolean; note?: string }>(
+        config,
+        "/api/family/delegates/settings",
+        {
+          method: "PATCH",
+          body: JSON.stringify({ delegateApproverOptIn }),
+        }
+      ),
   };
 }
 

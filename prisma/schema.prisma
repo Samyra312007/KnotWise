@@ -99,6 +99,7 @@ model Customer {
   c2cMessagesSent       C2cMessage[]
   reportsFiled          Report[]               @relation("ReportReporter")
   discoveryInterests    DiscoveryInterest[]
+  familyDelegates       FamilyDelegate[]
 
   @@index([orgId])
   @@index([stage])
@@ -254,6 +255,7 @@ model ClientAccount {
   notifyEmail     Boolean   @default(true)
   onboardingStep  Int       @default(0)
   onboardingCompletedAt DateTime?
+  delegateApproverOptIn Boolean @default(false)
 
   customer   Customer         @relation(fields: [customerId], references: [id], onDelete: Cascade)
   magicLinks MagicLinkToken[]
@@ -613,4 +615,49 @@ model ClientMobileAuthToken {
   client ClientAccount @relation(fields: [clientId], references: [id], onDelete: Cascade)
 
   @@index([clientId])
+}
+
+model FamilyDelegate {
+  id              String    @id @default(cuid())
+  customerId      String
+  email           String
+  role            String
+  status          String    @default("invited")
+  invitedAt       DateTime  @default(now())
+  acceptedAt      DateTime?
+  revokedAt       DateTime?
+  inviteTokenHash String?
+
+  customer     Customer                  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  magicLinks   DelegateMagicLinkToken[]
+  mobileTokens DelegateAuthToken[]
+
+  @@unique([customerId, email])
+  @@index([email, status])
+}
+
+model DelegateMagicLinkToken {
+  id         String    @id @default(cuid())
+  delegateId String
+  tokenHash  String    @unique
+  expiresAt  DateTime
+  usedAt     DateTime?
+  createdAt  DateTime  @default(now())
+
+  delegate FamilyDelegate @relation(fields: [delegateId], references: [id], onDelete: Cascade)
+
+  @@index([delegateId])
+}
+
+model DelegateAuthToken {
+  id         String    @id @default(cuid())
+  delegateId String
+  tokenHash  String    @unique
+  expiresAt  DateTime
+  createdAt  DateTime  @default(now())
+  revokedAt  DateTime?
+
+  delegate FamilyDelegate @relation(fields: [delegateId], references: [id], onDelete: Cascade)
+
+  @@index([delegateId])
 }
