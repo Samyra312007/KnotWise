@@ -107,7 +107,7 @@ describe("realtime mode selection", () => {
     expect(realtimeMode()).toBe("redis-sse");
   });
 
-  it("uses memory-sse in development without infra", async () => {
+  it("uses memory-sse outside production without infra", async () => {
     delete process.env.PUSHER_APP_ID;
     delete process.env.PUSHER_KEY;
     delete process.env.PUSHER_SECRET;
@@ -115,10 +115,10 @@ describe("realtime mode selection", () => {
     delete process.env.REDIS_URL;
 
     const { realtimeMode } = await import("@/lib/realtime/config");
-    if (process.env.NODE_ENV === "development") {
-      expect(realtimeMode()).toBe("memory-sse");
-    } else {
+    if (process.env.NODE_ENV === "production") {
       expect(realtimeMode()).toBe("poll");
+    } else {
+      expect(realtimeMode()).toBe("memory-sse");
     }
   });
 });

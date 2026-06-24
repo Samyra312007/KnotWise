@@ -170,7 +170,7 @@ flowchart LR
 
 ---
 
-### P7 — Push notifications | Spec
+### P7 — Push notifications | **Shipped**
 
 | | |
 |---|---|
@@ -178,7 +178,19 @@ flowchart LR
 | **Depends on** | P6 |
 | **Effort** | ~1 week |
 
-**Checklist:** `DeviceToken`; Expo push; deep links.
+**Checklist**
+
+- [x] `DeviceToken` + `NotificationPreference` models
+- [x] Expo push sender with 3x retry (`lib/push/expo.ts`)
+- [x] `POST/GET/DELETE /api/client/devices`
+- [x] `GET/PATCH /api/client/notifications/preferences`
+- [x] Triggers: intro sent, mutual match, C2C message, reminder hook
+- [x] Deep links in push payload (`url`, `deepLink`)
+- [x] Portal `/portal/settings/notifications`
+- [x] Mobile registration helper (`apps/mobile/lib/push.ts`)
+- [x] `PUSH_DRY_RUN` for local dev
+
+**Done when:** Client can opt out per category; push fires on intro/mutual/message events.
 
 ---
 

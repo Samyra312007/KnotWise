@@ -33,6 +33,29 @@ export function createApiClient(config: ApiConfig) {
         body: JSON.stringify({ status }),
       }),
     clientMessages: () => request<{ messages: unknown[] }>(config, "/api/client/messages"),
+    registerDevice: (token: string, platform: "ios" | "android" | "web") =>
+      request<{ ok: boolean }>(config, "/api/client/devices", {
+        method: "POST",
+        body: JSON.stringify({ token, platform }),
+      }),
+    notificationPreferences: () =>
+      request<{ preferences: { introPush: boolean; messagePush: boolean; reminderPush: boolean } }>(
+        config,
+        "/api/client/notifications/preferences"
+      ),
+    updateNotificationPreferences: (prefs: {
+      introPush?: boolean;
+      messagePush?: boolean;
+      reminderPush?: boolean;
+    }) =>
+      request<{ preferences: { introPush: boolean; messagePush: boolean; reminderPush: boolean } }>(
+        config,
+        "/api/client/notifications/preferences",
+        {
+          method: "PATCH",
+          body: JSON.stringify(prefs),
+        }
+      ),
   };
 }
 

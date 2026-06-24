@@ -27,6 +27,7 @@ export default async function PortalProtectedLayout({ children }: { children: Re
             <Link href="/portal/chat">Chat</Link>
             <Link href="/portal/messages">Matchmaker</Link>
             <Link href="/portal/profile">Profile</Link>
+            <Link href="/portal/settings/notifications">Alerts</Link>
             <Link href="/portal/trust">Verify</Link>
             <form action="/api/client/auth/logout" method="POST">
               <button type="submit" className="text-ink-mute hover:text-vermilion">

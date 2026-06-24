@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { logAuditEvent } from "@/lib/audit";
+import { notifyC2cMessage } from "@/lib/push/triggers";
 import { dispatchC2cEvent, serializeC2cMessageEvent } from "@/lib/realtime/dispatch";
 import { isBlockedEitherWay } from "@/lib/c2c/blocks";
 import { sanitizeOrRejectMessage } from "@/lib/trust/content-filter";
@@ -120,6 +121,19 @@ export async function sendConversationMessage(input: {
       message,
     })
   );
+
+  const sender = await prisma.customer.findUnique({
+    where: { id: input.customerId },
+    select: { firstName: true, lastName: true },
+  });
+  const senderName = sender ? `${sender.firstName} ${sender.lastName}` : "Someone";
+
+  void notifyC2cMessage({
+    recipientCustomerId: counterpartId,
+    conversationId: input.conversationId,
+    preview: messageBody,
+    senderName,
+  }).catch(() => undefined);
 
   return message;
 }

@@ -5,6 +5,7 @@ import { createNotification } from "@/lib/notifications";
 import { getPrimaryMatchmakerId } from "@/lib/access/customers";
 import { ensureCustomerPoolProfile, orderedClientPair } from "@/lib/matching/pool-mirror";
 import { createConversationForMutual } from "@/lib/c2c/conversations";
+import { notifyMutualMatch } from "@/lib/push/triggers";
 import type { Biodata } from "@/lib/types";
 
 export type IntroDecision = "accept" | "decline";
@@ -175,6 +176,33 @@ async function createMutualMatch(input: {
   });
 
   await createConversationForMutual(mutual.id);
+
+  const conversation = await prisma.conversation.findUnique({
+    where: { mutualMatchId: mutual.id },
+    select: { id: true },
+  });
+
+  const [clientA, clientB] = await Promise.all([
+    prisma.customer.findUnique({ where: { id: clientAId }, select: { firstName: true, lastName: true } }),
+    prisma.customer.findUnique({ where: { id: clientBId }, select: { firstName: true, lastName: true } }),
+  ]);
+
+  const nameA = clientA ? `${clientA.firstName} ${clientA.lastName}` : "your match";
+  const nameB = clientB ? `${clientB.firstName} ${clientB.lastName}` : "your match";
+
+  void notifyMutualMatch({
+    customerId: clientAId,
+    mutualMatchId: mutual.id,
+    counterpartName: nameB,
+    conversationId: conversation?.id,
+  }).catch(() => undefined);
+
+  void notifyMutualMatch({
+    customerId: clientBId,
+    mutualMatchId: mutual.id,
+    counterpartName: nameA,
+    conversationId: conversation?.id,
+  }).catch(() => undefined);
 
   await logAuditEvent({
     orgId: input.orgId,

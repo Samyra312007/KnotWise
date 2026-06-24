@@ -190,7 +190,45 @@ Mode priority: Pusher (if all `PUSHER_*` + `NEXT_PUBLIC_PUSHER_KEY`) → Redis S
 
 ---
 
-## 8.9 P9 — Discovery (planned)
+## 8.9 P7 — Push notifications (shipped)
+
+### `POST /api/client/devices`
+
+**Auth:** Client session  
+**Body:** `{ "token": string, "platform": "ios" | "android" | "web" }`  
+**Response:** `{ "ok": true, "device": { "id", "platform", "updatedAt" } }`
+
+### `GET /api/client/devices`
+
+Lists registered push tokens (preview only).
+
+### `DELETE /api/client/devices`
+
+**Body:** `{ "token": string }`
+
+### `GET /api/client/notifications/preferences`
+
+**Response:**
+
+```json
+{
+  "preferences": { "introPush": true, "messagePush": true, "reminderPush": true },
+  "dryRun": true,
+  "recentDryRun": []
+}
+```
+
+### `PATCH /api/client/notifications/preferences`
+
+**Body:** `{ "introPush"?: boolean, "messagePush"?: boolean, "reminderPush"?: boolean }`
+
+**Push payload data (all types):** includes `type`, entity ids, `url` (web), `deepLink` (mobile).
+
+**Env:** `PUSH_DRY_RUN`, `EXPO_ACCESS_TOKEN`, `CLIENT_PORTAL_URL`
+
+---
+
+## 8.10 P9 — Discovery (planned)
 
 ### `GET /api/client/discover?city=&ageMin=&cursor=`
 
@@ -202,7 +240,7 @@ Notifies assigned matchmaker.
 
 ---
 
-## 8.10 P10 — Family (planned)
+## 8.11 P10 — Family (planned)
 
 ### `POST /api/family/delegates/invite`
 
@@ -212,7 +250,7 @@ Notifies assigned matchmaker.
 
 ---
 
-## 8.11 Webhooks (shipped + planned)
+## 8.12 Webhooks (shipped + planned)
 
 | Path | Provider |
 |------|----------|

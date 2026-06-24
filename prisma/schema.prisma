@@ -254,6 +254,8 @@ model ClientAccount {
   customer   Customer         @relation(fields: [customerId], references: [id], onDelete: Cascade)
   magicLinks MagicLinkToken[]
   verificationAttempts VerificationAttempt[]
+  deviceTokens DeviceToken[]
+  notificationPreference NotificationPreference?
 }
 
 model MagicLinkToken {
@@ -552,4 +554,27 @@ model MobileAuthToken {
   revokedAt    DateTime?
 
   matchmaker Matchmaker @relation(fields: [matchmakerId], references: [id], onDelete: Cascade)
+}
+
+model DeviceToken {
+  id        String   @id @default(cuid())
+  clientId  String
+  platform  String
+  token     String   @unique
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+
+  client ClientAccount @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([clientId])
+}
+
+model NotificationPreference {
+  id           String  @id @default(cuid())
+  clientId     String  @unique
+  introPush    Boolean @default(true)
+  messagePush  Boolean @default(true)
+  reminderPush Boolean @default(true)
+
+  client ClientAccount @relation(fields: [clientId], references: [id], onDelete: Cascade)
 }

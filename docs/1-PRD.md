@@ -180,7 +180,7 @@ Each phase: **Problem → Stories → Goals / Non-goals → Acceptance → Metri
 **Goals:** FCM/APNs; device tokens; preferences; deep links to intro/chat.  
 **Acceptance:** Push on new intro, message, reminder; opt-out per category.
 
-**Status:** Spec
+**Status:** Shipped — Expo push API, `DeviceToken`, portal notification settings
 
 ---
 
