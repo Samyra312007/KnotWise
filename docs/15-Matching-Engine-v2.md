@@ -3,7 +3,7 @@
 **Project:** KnotWise  
 **Version:** 2.0  
 **Status:** Approved  
-**Phase:** P12
+**Status:** Shipped (P12)
 
 ---
 
@@ -94,9 +94,9 @@ Rules v2, Kundli, location, ML production, preference learning, bias audit.
 
 ## Acceptance criteria
 
-- [ ] Kundli component toggled off by default
-- [ ] Same-gotra hard filter unit tested
-- [ ] A/B experiment on weights (doc 13)
+- [x] Kundli component toggled off by default
+- [x] Same-gotra hard filter unit tested
+- [x] A/B experiment on weights (doc 13)
 
 ## Open questions
 

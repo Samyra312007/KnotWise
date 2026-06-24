@@ -34,7 +34,15 @@ export function OpsDashboard({ role }: { role: string }) {
   >([]);
   const [revisions, setRevisions] = React.useState<ProfileRevisionItem[]>([]);
   const [reports, setReports] = React.useState<ReportItem[]>([]);
-  const [ml, setMl] = React.useState<{ mlEnabled: boolean; bias: Array<{ religion: string; acceptanceRate: number; total: number }> } | null>(null);
+  const [ml, setMl] = React.useState<{
+    mlEnabled: boolean;
+    kundliEnabled: boolean;
+    weightPreset: string;
+    experimentVariant: string;
+    bias: Array<{ religion: string; acceptanceRate: number; total: number; alert?: boolean }>;
+    biasReport?: { alerts: Array<{ segment: string; dimension: string; acceptanceRate: number }> };
+  } | null>(null);
+  const [matchingBusy, setMatchingBusy] = React.useState(false);
 
   React.useEffect(() => {
     fetch("/api/verification?status=pending")
@@ -97,6 +105,33 @@ export function OpsDashboard({ role }: { role: string }) {
     const res = await fetch("/api/ml", { method: "POST" });
     const data = await res.json();
     toast.success(data.trained ? "Model tuned." : "Skipped — need more feedback data.");
+  }
+
+  async function patchMatching(body: Record<string, unknown>) {
+    setMatchingBusy(true);
+    const res = await fetch("/api/ops/matching/config", {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    setMatchingBusy(false);
+    if (!res.ok) {
+      toast.error("Could not update matching config.");
+      return;
+    }
+    const data = await res.json();
+    setMl((prev) =>
+      prev
+        ? {
+            ...prev,
+            kundliEnabled: data.kundliEnabled,
+            weightPreset: data.weightPreset,
+            experimentVariant: data.experimentVariant,
+            mlEnabled: data.mlEnabled,
+          }
+        : prev
+    );
+    toast.success("Matching config updated.");
   }
 
   return (
@@ -213,17 +248,52 @@ export function OpsDashboard({ role }: { role: string }) {
           Run weight tuning
         </Button>
         {ml && (
-          <div className="mt-6 text-[14px] text-ink-warm">
-            ML re-rank: {ml.mlEnabled ? "on" : "off"}
+          <div className="mt-6 text-[14px] text-ink-warm space-y-4">
+            <p>
+              ML re-rank: {ml.mlEnabled ? "on" : "off"} · Weights: {ml.weightPreset} · Experiment:{" "}
+              {ml.experimentVariant} · Kundli: {ml.kundliEnabled ? "on" : "off"}
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant="quiet"
+                size="compact"
+                loading={matchingBusy}
+                onClick={() => patchMatching({ experimentVariant: ml.experimentVariant === "control" ? "treatment" : "control" })}
+              >
+                Toggle A/B ({ml.experimentVariant === "control" ? "→ treatment" : "→ control"})
+              </Button>
+              <Button
+                variant="quiet"
+                size="compact"
+                loading={matchingBusy}
+                onClick={() => patchMatching({ kundliEnabled: !ml.kundliEnabled })}
+              >
+                {ml.kundliEnabled ? "Disable Kundli" : "Enable Kundli"}
+              </Button>
+              <Button
+                variant="quiet"
+                size="compact"
+                loading={matchingBusy}
+                onClick={() => patchMatching({ weightPreset: ml.weightPreset === "v1" ? "v2" : "v1" })}
+              >
+                Use weights {ml.weightPreset === "v1" ? "v2" : "v1"}
+              </Button>
+            </div>
             {ml.bias.length > 0 && (
-              <ul className="mt-4 space-y-1">
+              <ul className="space-y-1">
                 {ml.bias.map((b) => (
-                  <li key={b.religion}>
+                  <li key={b.religion} className={b.alert ? "text-vermilion" : undefined}>
                     {b.religion}: {(b.acceptanceRate * 100).toFixed(0)}% ({b.total} samples)
+                    {b.alert ? " · below baseline" : ""}
                   </li>
                 ))}
               </ul>
             )}
+            {ml.biasReport?.alerts?.length ? (
+              <p className="text-vermilion text-[13px]">
+                Bias alerts: {ml.biasReport.alerts.map((a) => `${a.dimension}/${a.segment}`).join(", ")}
+              </p>
+            ) : null}
           </div>
         )}
       </div>

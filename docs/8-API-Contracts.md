@@ -362,7 +362,29 @@ Creates org + owner + 14-day trialing subscription. Returns optional `stripeChec
 
 ---
 
-## 8.14 Webhooks (shipped)
+## 8.15 P12 — Matching v2 + Kundli (shipped)
+
+### `GET/PATCH /api/ops/matching/config`
+
+Ops-only. Toggle `kundliEnabled`, `weightPreset` (`v1`|`v2`), `experimentVariant` (`control`|`treatment`), `mlEnabled`.
+
+### `GET /api/ops/matching/bias-audit`
+
+Returns acceptance rates by religion/caste/city tier with baseline alerts.
+
+### `GET/POST /api/client/astro`
+
+**POST body:** `{ "birthTime": "HH:mm", "birthPlace": string, "consent": true }`  
+Fetches/caches Kundli (`KUNDLI_DRY_RUN=true` by default). Requires explicit consent.
+
+### `POST /api/client/preference-signals`
+
+**Body:** `{ "poolProfileId"?, "suggestionId"?, "signalType": "view"|"open"|"dwell", "dwellMs"?: number }`  
+Feeds preference-learning weight adjustments.
+
+---
+
+## 8.16 Webhooks (shipped)
 
 | Path | Provider |
 |------|----------|

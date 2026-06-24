@@ -49,7 +49,12 @@ export default function PortalMatchDetailPage() {
 
   React.useEffect(() => {
     load().catch(() => toast.error("Could not load intro."));
-  }, [load]);
+    fetch("/api/client/preference-signals", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ suggestionId: params.id, signalType: "open" }),
+    }).catch(() => undefined);
+  }, [load, params.id]);
 
   React.useEffect(() => {
     const mutualId = mutualParam ?? detail?.mutualMatchId;

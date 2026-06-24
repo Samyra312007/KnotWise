@@ -229,7 +229,7 @@ Each phase: **Problem → Stories → Goals / Non-goals → Acceptance → Metri
 **Goals:** Kundli API; location/relocation scoring; production ML; A/B tests; preference learning.  
 **Acceptance:** Configurable weights; bias audit report; experiment framework.
 
-**Status:** Spec — [ADR 006](adr/006-kundli-integration.md)
+**Status:** Shipped — Kundli integration, matching v2 weights, preference learning, A/B experiments, bias audit
 
 ---
 

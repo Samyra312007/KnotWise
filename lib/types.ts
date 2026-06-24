@@ -104,6 +104,10 @@ export interface Biodata {
   partnerPreferences: PartnerPreferences;
 
   photoUrl?: string;
+
+  birthTime?: string;
+  birthPlace?: string;
+  kundliConsent?: boolean;
 }
 
 export interface ScoredCandidate {

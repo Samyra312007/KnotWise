@@ -291,15 +291,26 @@ flowchart LR
 
 ---
 
-### P12 — Matching v2 + Kundli | Spec
+### P12 — Matching v2 + Kundli | **Shipped**
 
 | | |
 |---|---|
 | **Goal** | Astro + ML production + A/B |
-| **Depends on** | P5, P14 |
+| **Depends on** | P5 |
 | **Effort** | ~4 weeks |
 
-**Checklist:** See [`15-Matching-Engine-v2.md`](15-Matching-Engine-v2.md).
+**Checklist**
+
+- [x] `AstroProfile` + client `/portal/astro` with consent + dry-run Kundli
+- [x] Matching v2 weights (`lib/matching/v2/*`) with relocation scoring
+- [x] Kundli score component (15%, off by default via `kundliEnabled`)
+- [x] `PreferenceSignal` + client view/open tracking
+- [x] `MatchExperiment` A/B (`control` vs `treatment` weight presets)
+- [x] Bias audit by religion/caste/city tier with alerts
+- [x] Ops matching config API + dashboard controls
+- [x] ML train promotes `weightPreset: v2`
+
+**Done when:** Bureau toggles Kundli; v2 ranking used in treatment experiment; bias report surfaces in ops.
 
 ---
 

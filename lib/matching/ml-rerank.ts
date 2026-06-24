@@ -41,22 +41,4 @@ export async function applyMlRerank(
   return adjusted.sort((a, b) => b.score - a.score);
 }
 
-export async function computeBiasAudit(orgId: string) {
-  const suggestions = await prisma.matchSuggestion.findMany({
-    where: { customer: { orgId }, status: { in: ["accepted", "declined"] } },
-    include: { poolProfile: true },
-  });
-  const byReligion: Record<string, { accepted: number; total: number }> = {};
-  for (const s of suggestions) {
-    const bio = JSON.parse(s.poolProfile.biodata) as Biodata;
-    const key = bio.religion;
-    if (!byReligion[key]) byReligion[key] = { accepted: 0, total: 0 };
-    byReligion[key].total += 1;
-    if (s.status === "accepted") byReligion[key].accepted += 1;
-  }
-  return Object.entries(byReligion).map(([religion, stats]) => ({
-    religion,
-    acceptanceRate: stats.total ? stats.accepted / stats.total : 0,
-    total: stats.total,
-  }));
-}
+export { computeBiasAudit } from "./bias-audit";

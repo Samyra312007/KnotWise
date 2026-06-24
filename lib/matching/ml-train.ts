@@ -33,8 +33,8 @@ export async function trainOrgMatchingModel(orgId: string) {
     },
   });
 
-  const tunedMale = { ...maleWeights, wantKids: Math.min(22, maleWeights.wantKids + 1) };
-  const tunedFemale = { ...femaleWeights, education: Math.min(16, femaleWeights.education + 1) };
+  const tunedMale = { ...maleWeights, wantKids: Math.min(22, (maleWeights.wantKids ?? 0) + 1) };
+  const tunedFemale = { ...femaleWeights, education: Math.min(16, (femaleWeights.education ?? 0) + 1) };
 
   await prisma.orgMatchingConfig.upsert({
     where: { orgId },
@@ -42,10 +42,12 @@ export async function trainOrgMatchingModel(orgId: string) {
       orgId,
       weightsJson: JSON.stringify({ male: tunedMale, female: tunedFemale }),
       mlEnabled: true,
+      weightPreset: "v2",
     },
     update: {
       weightsJson: JSON.stringify({ male: tunedMale, female: tunedFemale }),
       mlEnabled: true,
+      weightPreset: "v2",
     },
   });
 

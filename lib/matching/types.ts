@@ -14,9 +14,9 @@ export type Dimension =
   | "heightDelta"
   | "manglik";
 
-export type SubScores = Record<Dimension, number>;
+export type SubScores = Record<Dimension, number> & Record<string, number>;
 
-export type Weights = Record<Dimension, number>;
+export type Weights = Record<Dimension, number> & { kundli?: number };
 
 export interface StrategyResult {
   total: number;

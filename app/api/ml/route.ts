@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireApiOps } from "@/lib/auth/api";
 import { trainOrgMatchingModel } from "@/lib/matching/ml-train";
-import { computeBiasAudit } from "@/lib/matching/ml-rerank";
+import { computeBiasAudit, runBiasAudit } from "@/lib/matching/bias-audit";
 import { prisma } from "@/lib/db";
 
 export async function POST() {
@@ -17,8 +17,16 @@ export async function GET() {
   if (session instanceof NextResponse) return session;
 
   const bias = await computeBiasAudit(session.orgId);
+  const fullReport = await runBiasAudit(session.orgId);
   const config = await prisma.orgMatchingConfig.findUnique({ where: { orgId: session.orgId } });
-  return NextResponse.json({ bias, mlEnabled: config?.mlEnabled ?? false });
+  return NextResponse.json({
+    bias,
+    mlEnabled: config?.mlEnabled ?? false,
+    kundliEnabled: config?.kundliEnabled ?? false,
+    weightPreset: config?.weightPreset ?? "v1",
+    experimentVariant: config?.experimentVariant ?? "control",
+    biasReport: fullReport,
+  });
 }
 
 export async function PATCH(req: Request) {

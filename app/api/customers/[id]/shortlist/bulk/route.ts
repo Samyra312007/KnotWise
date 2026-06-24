@@ -36,7 +36,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
 
   const clientBiodata = JSON.parse(customer.biodata) as Biodata;
   const pool = await getVerifiedPool(session.orgId, clientBiodata.gender);
-  let ranked = await rankMatchesForOrg(session.orgId, clientBiodata, pool);
+  let ranked = await rankMatchesForOrg(session.orgId, clientBiodata, pool, id);
 
   if (parsed.bucket === "high") ranked = ranked.filter((r) => r.bucket === "high");
   else if (parsed.bucket === "medium") ranked = ranked.filter((r) => r.bucket === "medium");

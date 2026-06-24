@@ -53,7 +53,7 @@ export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }
   }
 
   const pool = await getVerifiedPool(session.orgId, clientBiodata.gender);
-  const ranked = await rankMatchesForOrg(session.orgId, clientBiodata, pool);
+  const ranked = await rankMatchesForOrg(session.orgId, clientBiodata, pool, id);
 
   let filtered = ranked;
   if (bucketParam === "high") filtered = ranked.filter((r) => r.bucket === "high");

@@ -97,7 +97,8 @@ export async function getDiscoveryFeed(input: {
   const ranked = await rankMatchesForOrg(
     input.orgId,
     clientBio,
-    pool.map((entry) => ({ id: entry.id, biodata: entry.biodata }))
+    pool.map((entry) => ({ id: entry.id, biodata: entry.biodata })),
+    input.customerId
   );
 
   const rankedMap = new Map(ranked.map((row) => [row.id, row]));

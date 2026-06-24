@@ -28,7 +28,7 @@ function scoreWithWeights(
   const contributions = {} as Record<string, number>;
   let total = 0;
   (Object.keys(breakdown) as Array<keyof SubScores>).forEach((k) => {
-    const weight = weights[k] ?? 0;
+    const weight = (weights as Record<string, number>)[k] ?? 0;
     const sub = breakdown[k];
     const contribution = weight * sub;
     contributions[k] = contribution;

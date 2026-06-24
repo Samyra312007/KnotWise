@@ -254,20 +254,30 @@ Delegate magic-link and mobile Bearer tokens: `DelegateMagicLinkToken`, `Delegat
 
 ---
 
-## 4.9 P12 — Astro / Kundli
+## 4.9 P12 — Astro / Kundli (shipped)
 
 ```prisma
 model AstroProfile {
-  id           String   @id @default(cuid())
-  entityType   String
-  entityId     String
-  birthTime    DateTime?
-  birthPlace   String?
-  kundliJson   String
-  fetchedAt    DateTime @default(now())
+  id         String    @id @default(cuid())
+  entityType String
+  entityId   String
+  birthTime  String?
+  birthPlace String?
+  consentAt  DateTime?
+  kundliJson String?
+  fetchedAt  DateTime?
 
   @@unique([entityType, entityId])
 }
+
+model OrgMatchingConfig {
+  kundliEnabled     Boolean @default(false)
+  weightPreset      String  @default("v1")
+  experimentVariant String  @default("control")
+}
+
+model PreferenceSignal { ... }
+model MatchExperiment { ... }
 ```
 
 ---

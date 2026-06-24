@@ -37,7 +37,8 @@
 | Consumer P9 | Discovery feed | PRD §P9, ADR 001/005 | Shipped |
 | Consumer P10 | Family delegates | PRD §P10, ADR 007 | Shipped |
 | Consumer P11 | Payments India | PRD §P11, doc 16, ADR 004 | Shipped |
-| Consumer P12–P16 | Real dating/matrimonial product | PRD §P12–P16, docs 8–17 | Spec only |
+| Consumer P12 | Matching v2 + Kundli | PRD §P12, doc 15, ADR 006 | Shipped |
+| Consumer P13–P16 | Real dating/matrimonial product | PRD §P13–P16, docs 8–17 | Spec only |
 
 ---
 
@@ -58,7 +59,8 @@
 | P9 discovery feed | Shipped (`/portal/discover`, `lib/discovery/*`) |
 | P10 family delegates | Shipped (`/portal/family`, `/portal/delegate`, `lib/family/*`) |
 | P11 payments India | Shipped (`/portal/billing`, Razorpay, `/signup/bureau`) |
-| P12–P16 consumer features | Spec only (this library) |
+| P12 matching v2 + Kundli | Shipped (`lib/matching/v2/*`, `/portal/astro`, bias audit) |
+| P13–P16 consumer features | Spec only (this library) |
 
 ---
 
@@ -141,11 +143,11 @@ Every remaining consumer-dating gap maps to a phase and primary doc.
 
 | Gap | Phase | Primary doc | Status |
 |-----|-------|-------------|--------|
-| Real horoscope / Kundli integration | P12 | doc 15, ADR 006 | Spec |
-| Location-aware and relocation-aware matching | P12 | doc 15 | Spec |
-| Learned ranking at production scale | P12 | doc 15, TRD §2.12 | Spec |
-| A/B testing and acceptance-rate analytics | P12, P14 | doc 13, doc 15 | Spec |
-| Preference learning from behavior | P12 | doc 15 | Spec |
+| Real horoscope / Kundli integration | P12 | doc 15, ADR 006 | Shipped |
+| Location-aware and relocation-aware matching | P12 | doc 15 | Shipped |
+| Learned ranking at production scale | P12 | doc 15, TRD §2.12 | Shipped |
+| A/B testing and acceptance-rate analytics | P12, P14 | doc 13, doc 15 | Shipped (weights A/B) |
+| Preference learning from behavior | P12 | doc 15 | Shipped |
 
 ### Payments & business
 

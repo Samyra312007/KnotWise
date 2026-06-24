@@ -24,6 +24,7 @@ model Organization {
   matchingConfig    OrgMatchingConfig?
   modelVersions     ModelVersion[]
   auditEvents       AuditEvent[]
+  matchExperiments  MatchExperiment[]
 }
 
 model Membership {
@@ -103,6 +104,7 @@ model Customer {
   clientIntroRequests   ClientIntroRequest[]
   billingCheckoutSessions BillingCheckoutSession[]
   billingInvoices       ClientBillingInvoice[]
+  preferenceSignals     PreferenceSignal[]
 
   @@index([orgId])
   @@index([stage])
@@ -453,6 +455,9 @@ model OrgMatchingConfig {
   blockSameGotra Boolean  @default(true)
   discoveryEnabled      Boolean @default(true)
   discoveryDailyLimit   Int     @default(20)
+  kundliEnabled         Boolean @default(false)
+  weightPreset          String  @default("v1")
+  experimentVariant     String  @default("control")
   updatedAt      DateTime @updatedAt
 
   org Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
@@ -731,4 +736,48 @@ model ClientIntroRequest {
   customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
 
   @@index([customerId, createdAt])
+}
+
+model PreferenceSignal {
+  id            String   @id @default(cuid())
+  customerId    String
+  poolProfileId String?
+  suggestionId  String?
+  signalType    String
+  dwellMs       Int?
+  metadata      String?
+  createdAt     DateTime @default(now())
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId, createdAt])
+  @@index([poolProfileId])
+}
+
+model AstroProfile {
+  id         String    @id @default(cuid())
+  entityType String
+  entityId   String
+  birthTime  String?
+  birthPlace String?
+  consentAt  DateTime?
+  kundliJson String?
+  fetchedAt  DateTime?
+
+  @@unique([entityType, entityId])
+}
+
+model MatchExperiment {
+  id         String    @id @default(cuid())
+  orgId      String
+  key        String
+  variant    String
+  status     String    @default("active")
+  configJson String    @default("{}")
+  startedAt  DateTime  @default(now())
+  endedAt    DateTime?
+
+  org Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@unique([orgId, key])
 }
