@@ -111,6 +111,8 @@ model Customer {
   preferenceSignals     PreferenceSignal[]
   analyticsEvents     AnalyticsEvent[]
   crmLead               CrmLead?
+  dataExportRequests  DataExportRequest[]
+  dataDeletionRequest DataDeletionRequest?
 
   @@index([orgId])
   @@index([stage])
@@ -300,6 +302,9 @@ model ClientAccount {
   deviceTokens DeviceToken[]
   notificationPreference NotificationPreference?
   mobileTokens ClientMobileAuthToken[]
+  consent    ClientConsent?
+  dataExportRequests DataExportRequest[]
+  dataDeletionRequest DataDeletionRequest?
 }
 
 model MagicLinkToken {
@@ -851,4 +856,52 @@ model CrmLead {
 
   @@index([orgId, stage])
   @@index([orgId, nextFollowUpAt])
+}
+
+model ClientConsent {
+  id                  String    @id @default(cuid())
+  clientId            String    @unique
+  tosAcceptedAt       DateTime?
+  privacyAcceptedAt   DateTime?
+  biodataProcessingAt DateTime?
+  marketingEmailOptIn Boolean   @default(false)
+  marketingOptInAt    DateTime?
+  analyticsOptIn      Boolean   @default(false)
+  analyticsOptInAt    DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  client ClientAccount @relation(fields: [clientId], references: [id], onDelete: Cascade)
+}
+
+model DataExportRequest {
+  id            String    @id @default(cuid())
+  customerId    String
+  clientId      String
+  status        String    @default("ready")
+  bundleJson    String?
+  requestedAt   DateTime  @default(now())
+  readyAt       DateTime?
+  expiresAt     DateTime?
+
+  customer Customer      @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  client   ClientAccount @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([customerId, requestedAt])
+}
+
+model DataDeletionRequest {
+  id           String    @id @default(cuid())
+  customerId   String    @unique
+  clientId     String    @unique
+  status       String    @default("scheduled")
+  scheduledFor DateTime
+  requestedAt  DateTime  @default(now())
+  completedAt  DateTime?
+  reason       String?
+
+  customer Customer      @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  client   ClientAccount @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([status, scheduledFor])
 }

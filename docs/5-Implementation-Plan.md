@@ -357,7 +357,7 @@ flowchart LR
 
 ---
 
-### P15 — Compliance hardening | Spec
+### P15 — Compliance hardening | **Shipped**
 
 | | |
 |---|---|
@@ -365,7 +365,18 @@ flowchart LR
 | **Depends on** | P5, P11 |
 | **Effort** | ~2 weeks |
 
-**Checklist:** See [`10-Compliance-Legal.md`](10-Compliance-Legal.md).
+**Checklist**
+
+- [x] `/legal/terms` + `/legal/privacy` public pages
+- [x] Signup ToS/Privacy checkboxes + optional marketing opt-in
+- [x] `ClientConsent` model + `GET/PATCH /api/client/consent`
+- [x] `GET /api/client/data-export` JSON bundle (72h retention)
+- [x] `POST/DELETE /api/client/delete-account` with 30-day grace + Inngest purge
+- [x] Post-mutual contact share consent (`POST /api/client/mutual/[id]/share-contact`)
+- [x] Portal `/portal/settings/privacy` export + deletion UI
+- [x] Age gate 18–60 at signup
+
+**Done when:** Legal pages linked at signup; export immediate; deletion anonymizes PII after grace period.
 
 ---
 

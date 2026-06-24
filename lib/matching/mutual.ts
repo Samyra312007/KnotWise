@@ -191,7 +191,6 @@ async function createMutualMatch(input: {
         clientAId,
         clientBId,
         status: "active",
-        contactSharedAt: now,
       },
     });
 

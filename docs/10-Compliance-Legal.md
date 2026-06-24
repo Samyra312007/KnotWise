@@ -81,9 +81,9 @@ Legal review replacement — counsel sign-off required pre-launch.
 
 ## Acceptance criteria
 
-- [ ] Privacy policy linked at signup
-- [ ] Export completes <72h
-- [ ] Deletion removes PII from primary DB
+- [x] Privacy policy linked at signup
+- [x] Export completes <72h
+- [x] Deletion removes PII from primary DB
 
 ## Open questions
 

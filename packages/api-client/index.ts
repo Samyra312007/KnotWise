@@ -408,6 +408,40 @@ export function createClientApi(config: ApiConfig) {
         method: "PATCH",
         body: JSON.stringify({ action }),
       }),
+
+    dataExport: () =>
+      request<{ ok: boolean; requestId: string; expiresAt: string; bundle: Record<string, unknown> }>(
+        config,
+        "/api/client/data-export"
+      ),
+
+    deletionStatus: () =>
+      request<{ scheduled: boolean; scheduledFor?: string; graceDays: number }>(config, "/api/client/delete-account"),
+
+    requestDeletion: (reason?: string) =>
+      request<{ ok: boolean; scheduledFor: string }>(config, "/api/client/delete-account", {
+        method: "POST",
+        body: JSON.stringify({ confirm: true, reason }),
+      }),
+
+    cancelDeletion: () =>
+      request<{ ok: boolean }>(config, "/api/client/delete-account", { method: "DELETE" }),
+
+    consent: () =>
+      request<{ marketingEmailOptIn: boolean; analyticsOptIn: boolean }>(config, "/api/client/consent"),
+
+    updateConsent: (body: { marketingEmailOptIn?: boolean; analyticsOptIn?: boolean }) =>
+      request<{ ok: boolean; marketingEmailOptIn: boolean; analyticsOptIn: boolean }>(
+        config,
+        "/api/client/consent",
+        { method: "PATCH", body: JSON.stringify(body) }
+      ),
+
+    shareContact: (mutualMatchId: string) =>
+      request<{ ok: boolean; contactSharedAt: string }>(config, `/api/client/mutual/${mutualMatchId}/share-contact`, {
+        method: "POST",
+        body: JSON.stringify({ consent: true }),
+      }),
   };
 }
 

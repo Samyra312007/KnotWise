@@ -343,7 +343,19 @@ Migration: `20260623310000_analytics_crm`
 
 ---
 
-## 4.12 P9 — Discovery
+## 4.13 P15 — Compliance (shipped)
+
+```prisma
+model ClientConsent { clientId, tosAcceptedAt, privacyAcceptedAt, marketingEmailOptIn, analyticsOptIn, ... }
+model DataExportRequest { customerId, clientId, bundleJson, expiresAt, ... }
+model DataDeletionRequest { customerId, clientId, scheduledFor, status, ... }
+```
+
+Migration: `20260623320000_compliance`
+
+---
+
+## 4.14 P9 — Discovery
 
 ```prisma
 model DiscoveryInterest {

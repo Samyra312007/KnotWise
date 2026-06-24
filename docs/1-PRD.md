@@ -256,7 +256,7 @@ Each phase: **Problem → Stories → Goals / Non-goals → Acceptance → Metri
 **Goals:** ToS/Privacy; consent flows; export/delete; age gate; DPDP.  
 **Acceptance:** Legal pages; data export API; deletion within 30 days.
 
-**Status:** Spec — [`10-Compliance-Legal.md`](10-Compliance-Legal.md)
+**Status:** Shipped — legal pages, DPDP consents, data export/delete, contact share consent, age gate
 
 ---
 

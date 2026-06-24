@@ -66,4 +66,19 @@ export const sendScheduleReminders = inngest.createFunction(
   }
 );
 
-export const inngestFunctions = [deliverIntroEmail, sendMagicLinkEmail, trainOrgModel, sendScheduleReminders];
+export const processAccountDeletions = inngest.createFunction(
+  { id: "process-account-deletions" },
+  { cron: "0 4 * * *" },
+  async () => {
+    const { processDueDeletions } = await import("@/lib/compliance/deletion");
+    return processDueDeletions();
+  }
+);
+
+export const inngestFunctions = [
+  deliverIntroEmail,
+  sendMagicLinkEmail,
+  trainOrgModel,
+  sendScheduleReminders,
+  processAccountDeletions,
+];

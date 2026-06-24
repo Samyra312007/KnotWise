@@ -198,10 +198,10 @@ Every remaining consumer-dating gap maps to a phase and primary doc.
 
 | Gap | Phase | Primary doc | Status |
 |-----|-------|-------------|--------|
-| Terms, privacy policy, consent flows | P15 | doc 10 | Spec |
-| Data export / account deletion | P15 | doc 10 | Spec |
-| Age verification and minor protection | P5, P15 | doc 9, doc 10 | Spec |
-| Regional compliance (India DPDP) | P15 | doc 10 | Spec |
+| Terms, privacy policy, consent flows | P15 | doc 10 | Shipped |
+| Data export / account deletion | P15 | doc 10 | Shipped |
+| Age verification and minor protection | P5, P15 | doc 9, doc 10 | Shipped |
+| Regional compliance (India DPDP) | P15 | doc 10 | Shipped |
 
 ### Already shipped (not remaining)
 

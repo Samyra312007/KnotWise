@@ -7,6 +7,12 @@ import { assignDefaultMatchmaker, resolveDefaultOrgId } from "@/lib/onboarding/a
 import { magicLinkEmail } from "@/lib/email/templates";
 import { enqueueMagicLinkEmail } from "@/lib/jobs/email-jobs";
 import { hashToken } from "@/lib/auth/mobile";
+import { logAuditEvent } from "@/lib/audit";
+import { trackAnalyticsEventAsync } from "@/lib/analytics/track";
+import { ANALYTICS_EVENTS } from "@/lib/analytics/taxonomy";
+import { ensureCrmLead } from "@/lib/crm/leads";
+import { recordSignupConsent } from "@/lib/compliance/consent";
+import { validateSignupAge } from "@/lib/compliance/config";
 
 const schema = z.object({
   email: z.string().email(),
@@ -14,12 +20,10 @@ const schema = z.object({
   lastName: z.string().min(1).max(80),
   gender: z.enum(["male", "female"]),
   dateOfBirth: z.string().min(1),
+  acceptTos: z.literal(true),
+  acceptPrivacy: z.literal(true),
+  marketingOptIn: z.boolean().optional(),
 });
-
-import { logAuditEvent } from "@/lib/audit";
-import { trackAnalyticsEventAsync } from "@/lib/analytics/track";
-import { ANALYTICS_EVENTS } from "@/lib/analytics/taxonomy";
-import { ensureCrmLead } from "@/lib/crm/leads";
 
 export async function POST(req: Request) {
   let parsed;
@@ -41,13 +45,9 @@ export async function POST(req: Request) {
     );
   }
 
-  const ageMs = Date.now() - dob.getTime();
-  const ageYears = ageMs / (365.25 * 24 * 60 * 60 * 1000);
-  if (ageYears < 18 || ageYears > 60) {
-    return NextResponse.json(
-      { error: { code: "INVALID_INPUT", message: "You must be between 18 and 60 to join." } },
-      { status: 400 }
-    );
+  const ageError = validateSignupAge(dob);
+  if (ageError) {
+    return NextResponse.json({ error: { code: "INVALID_INPUT", message: ageError } }, { status: 400 });
   }
 
   const existing = await prisma.clientAccount.findUnique({ where: { email } });
@@ -96,7 +96,13 @@ export async function POST(req: Request) {
       customerId: customer.id,
       email,
       onboardingStep: 0,
+      notifyEmail: parsed.marketingOptIn ?? false,
     },
+  });
+
+  await recordSignupConsent({
+    clientId: account.id,
+    marketingEmailOptIn: parsed.marketingOptIn ?? false,
   });
 
   const token = crypto.randomBytes(32).toString("hex");

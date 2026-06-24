@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { requireApiClientSession } from "@/lib/auth/api";
 import { getMutualMatchForClient } from "@/lib/matching/mutual";
 import { createConversationForMutual } from "@/lib/c2c/conversations";
-import { buildIntroReveal } from "@/lib/matching/reveal";
+import { buildMutualCandidateReveal, mutualRevealLevel } from "@/lib/compliance/contact-share";
 import { prisma } from "@/lib/db";
 import type { Biodata } from "@/lib/types";
 
@@ -28,21 +28,22 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
 
   const score = suggestion?.score ?? 0;
   const bucket = suggestion?.bucket ?? "medium";
+  const revealLevel = mutualRevealLevel(result.mutual);
 
   return NextResponse.json({
     id: result.mutual.id,
     status: result.mutual.status,
-    contactSharedAt: result.mutual.contactSharedAt?.toISOString(),
+    contactSharedAt: result.mutual.contactSharedAt?.toISOString() ?? null,
     createdAt: result.mutual.createdAt.toISOString(),
     counterpartCustomerId: result.counterpartCustomerId,
     conversationId: conversation.id,
-    revealLevel: "full" as const,
-    candidate: buildIntroReveal({
+    revealLevel,
+    candidate: buildMutualCandidateReveal({
       biodata,
       photoUrl: result.counterpart.photoUrl,
       score,
       bucket,
-      revealLevel: "full",
+      contactSharedAt: result.mutual.contactSharedAt,
     }),
   });
 }

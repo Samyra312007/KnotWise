@@ -15,6 +15,9 @@ export default function PortalSignupPage() {
   const [email, setEmail] = React.useState("");
   const [gender, setGender] = React.useState<"male" | "female" | "">("");
   const [dateOfBirth, setDateOfBirth] = React.useState("");
+  const [acceptTos, setAcceptTos] = React.useState(false);
+  const [acceptPrivacy, setAcceptPrivacy] = React.useState(false);
+  const [marketingOptIn, setMarketingOptIn] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
   const [sent, setSent] = React.useState(false);
 
@@ -24,12 +27,25 @@ export default function PortalSignupPage() {
       toast.error("Select your gender.");
       return;
     }
+    if (!acceptTos || !acceptPrivacy) {
+      toast.error("Accept the Terms of Service and Privacy Policy to continue.");
+      return;
+    }
     setLoading(true);
     try {
       const res = await fetch("/api/client/auth/signup", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ email, firstName, lastName, gender, dateOfBirth }),
+        body: JSON.stringify({
+          email,
+          firstName,
+          lastName,
+          gender,
+          dateOfBirth,
+          acceptTos: true,
+          acceptPrivacy: true,
+          marketingOptIn,
+        }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -98,6 +114,41 @@ export default function PortalSignupPage() {
                 onChange={(e) => setDateOfBirth(e.target.value)}
                 required
               />
+            </div>
+            <div className="space-y-3 text-[13px] text-ink-warm">
+              <label className="flex items-start gap-2">
+                <input type="checkbox" checked={acceptTos} onChange={(e) => setAcceptTos(e.target.checked)} required />
+                <span>
+                  I accept the{" "}
+                  <Link href="/legal/terms" className="text-vermilion hover:underline" target="_blank">
+                    Terms of Service
+                  </Link>{" "}
+                  and am 18+ with matrimonial intent
+                </span>
+              </label>
+              <label className="flex items-start gap-2">
+                <input
+                  type="checkbox"
+                  checked={acceptPrivacy}
+                  onChange={(e) => setAcceptPrivacy(e.target.checked)}
+                  required
+                />
+                <span>
+                  I agree to the{" "}
+                  <Link href="/legal/privacy" className="text-vermilion hover:underline" target="_blank">
+                    Privacy Policy
+                  </Link>{" "}
+                  and processing of my biodata for matchmaking
+                </span>
+              </label>
+              <label className="flex items-start gap-2">
+                <input
+                  type="checkbox"
+                  checked={marketingOptIn}
+                  onChange={(e) => setMarketingOptIn(e.target.checked)}
+                />
+                <span>Send me optional product updates and tips (not required)</span>
+              </label>
             </div>
             <Button type="submit" variant="accent" loading={loading} className="w-full">
               Create account

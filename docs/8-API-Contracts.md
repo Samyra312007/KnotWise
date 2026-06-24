@@ -449,6 +449,30 @@ On accept for video mode, creates Daily.co room (`VIDEO_DRY_RUN=true` by default
 
 ---
 
+## 8.19 P15 — Compliance (shipped)
+
+### `GET /api/client/data-export`
+
+**Auth:** Client session  
+**Response:** `{ bundle, requestId, expiresAt }` — full JSON export, retained 72h.
+
+### `GET/POST/DELETE /api/client/delete-account`
+
+**POST body:** `{ confirm: true, reason? }` — schedules deletion in 30 days.  
+**DELETE** — cancels pending deletion during grace period.
+
+### `GET/PATCH /api/client/consent`
+
+Marketing and analytics opt-in preferences.
+
+### `POST /api/client/mutual/[id]/share-contact`
+
+**Body:** `{ consent: true }` — explicit post-mutual contact share.
+
+Public pages: `/legal/terms`, `/legal/privacy`.
+
+---
+
 ## Acceptance criteria
 
 - [ ] Each P2–P11 phase adds §8.x section before implementation

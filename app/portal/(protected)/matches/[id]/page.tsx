@@ -35,6 +35,8 @@ export default function PortalMatchDetailPage() {
   const [detail, setDetail] = React.useState<MatchDetail | null>(null);
   const [fullReveal, setFullReveal] = React.useState<IntroReveal | null>(null);
   const [conversationId, setConversationId] = React.useState<string | null>(null);
+  const [mutualMatchId, setMutualMatchId] = React.useState<string | null>(null);
+  const [contactSharedAt, setContactSharedAt] = React.useState<string | null>(null);
   const [reason, setReason] = React.useState("");
   const [busy, setBusy] = React.useState(false);
 
@@ -67,6 +69,8 @@ export default function PortalMatchDetailPage() {
       .then((d) => {
         if (d.candidate) setFullReveal(d.candidate);
         if (d.conversationId) setConversationId(d.conversationId);
+        setMutualMatchId(d.id ?? mutualId);
+        setContactSharedAt(d.contactSharedAt ?? null);
       })
       .catch(() => undefined);
   }, [mutualParam, detail?.mutualMatchId]);
@@ -85,7 +89,7 @@ export default function PortalMatchDetailPage() {
         return;
       }
       if (data.status === "mutual") {
-        toast.success("It's a mutual match! Contact details unlocked.");
+        toast.success("It's a mutual match! You can chat now — share contact when you're ready.");
       } else if (data.status === "accepted") {
         toast.success("Marked as interested. We'll notify you when they respond.");
       } else {
@@ -97,7 +101,34 @@ export default function PortalMatchDetailPage() {
         const mutualData = await mutualRes.json();
         if (mutualData.candidate) setFullReveal(mutualData.candidate);
         if (mutualData.conversationId) setConversationId(mutualData.conversationId);
+        setMutualMatchId(mutualData.id ?? data.mutualMatchId);
+        setContactSharedAt(mutualData.contactSharedAt ?? null);
       }
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function shareContact() {
+    const id = mutualMatchId ?? detail?.mutualMatchId;
+    if (!id) return;
+    setBusy(true);
+    try {
+      const res = await fetch(`/api/client/mutual/${id}/share-contact`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ consent: true }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data?.error?.message ?? "Could not share contact.");
+        return;
+      }
+      toast.success("Contact details shared with your match.");
+      const mutualRes = await fetch(`/api/client/mutual/${id}`);
+      const mutualData = await mutualRes.json();
+      if (mutualData.candidate) setFullReveal(mutualData.candidate);
+      setContactSharedAt(mutualData.contactSharedAt ?? null);
     } finally {
       setBusy(false);
     }
@@ -108,6 +139,7 @@ export default function PortalMatchDetailPage() {
   const reveal = fullReveal ?? detail.candidate;
   const canRespond = detail.status === "sent" || detail.status === "viewed";
   const isMutual = detail.status === "mutual" || !!fullReveal;
+  const contactShared = Boolean(contactSharedAt);
 
   return (
     <section>
@@ -131,9 +163,13 @@ export default function PortalMatchDetailPage() {
             <p className="mt-3 text-[13px] text-ink-mute">
               Limited preview — accept to signal interest. Contact details unlock on mutual match.
             </p>
+          ) : contactShared ? (
+            <p className="mt-3 font-mono text-[11px] uppercase tracking-[0.14em] text-vermilion">
+              Mutual match — contact shared
+            </p>
           ) : (
             <p className="mt-3 font-mono text-[11px] uppercase tracking-[0.14em] text-vermilion">
-              Mutual match — full profile unlocked
+              Mutual match — chat open; share contact when ready
             </p>
           )}
         </div>
@@ -143,7 +179,7 @@ export default function PortalMatchDetailPage() {
         <p className="mt-8 text-body-l italic text-ink-warm">{reveal.bioHeadline}</p>
       ) : null}
 
-      {isMutual ? (
+      {isMutual && contactShared ? (
         <dl className="mt-10 grid grid-cols-2 gap-4">
           <Field label="Company" value={reveal.currentCompany} />
           <Field label="Role" value={reveal.designation} />
@@ -154,6 +190,13 @@ export default function PortalMatchDetailPage() {
           <Field label="Email" value={reveal.email} />
           <Field label="Phone" value={reveal.phone} />
         </dl>
+      ) : isMutual ? (
+        <dl className="mt-10 grid grid-cols-2 gap-4">
+          <Field label="Company" value={reveal.currentCompany} />
+          <Field label="Role" value={reveal.designation} />
+          <Field label="Education" value={reveal.educationLevel} />
+          <Field label="City" value={reveal.city} />
+        </dl>
       ) : (
         <dl className="mt-10 grid grid-cols-2 gap-4">
           <Field label="City" value={reveal.city} />
@@ -162,13 +205,18 @@ export default function PortalMatchDetailPage() {
       )}
 
       {isMutual && conversationId ? (
-        <div className="mt-8">
+        <div className="mt-8 flex flex-wrap gap-3">
           <Link
             href={`/portal/chat/${conversationId}`}
             className="font-mono text-[10px] uppercase tracking-[0.18em] text-vermilion border border-vermilion/40 px-4 py-2 inline-block"
           >
             Open chat
           </Link>
+          {!contactShared ? (
+            <Button variant="accent" size="compact" disabled={busy} onClick={shareContact}>
+              Share my contact details
+            </Button>
+          ) : null}
         </div>
       ) : null}
 
