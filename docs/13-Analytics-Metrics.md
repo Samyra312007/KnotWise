@@ -85,8 +85,8 @@ Events, funnels, dashboards, experiments, lead CRM.
 
 ## Acceptance criteria
 
-- [ ] Funnel dashboard live for ops
-- [ ] All P3+ UI actions emit events
+- [x] Funnel dashboard live for ops
+- [x] All P3+ UI actions emit events
 
 ## Open questions
 

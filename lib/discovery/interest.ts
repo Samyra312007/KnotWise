@@ -3,6 +3,8 @@ import { logAuditEvent } from "@/lib/audit";
 import { createNotification } from "@/lib/notifications";
 import { getPrimaryMatchmakerId } from "@/lib/access/customers";
 import { clientHasDiscoveryAccess, getClientEntitlements } from "@/lib/billing/client-entitlements";
+import { trackAnalyticsEventAsync } from "@/lib/analytics/track";
+import { ANALYTICS_EVENTS } from "@/lib/analytics/taxonomy";
 import type { Biodata } from "@/lib/types";
 
 export async function expressDiscoveryInterest(input: {
@@ -98,6 +100,14 @@ export async function expressDiscoveryInterest(input: {
     entityType: "pool_profile",
     entityId: input.poolProfileId,
     metadata: { interestId: interest.id },
+  });
+
+  trackAnalyticsEventAsync({
+    orgId: input.orgId,
+    eventName: ANALYTICS_EVENTS.DISCOVERY_INTEREST,
+    customerId: input.customerId,
+    entityType: "pool_profile",
+    entityId: input.poolProfileId,
   });
 
   return interest;

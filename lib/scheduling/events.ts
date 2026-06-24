@@ -21,6 +21,8 @@ import {
 } from "./config";
 import { eventTitle, formatWhenLabel } from "./ics";
 import { createVideoRoom } from "./video";
+import { trackAnalyticsEventAsync } from "@/lib/analytics/track";
+import { ANALYTICS_EVENTS } from "@/lib/analytics/taxonomy";
 
 export type ScheduleMode = "in_person" | "video" | "phone";
 export type ScheduleStatus = "proposed" | "accepted" | "declined" | "cancelled";
@@ -328,6 +330,17 @@ export async function respondToSchedule(input: {
     entityId: existing.id,
     metadata: { status },
   });
+
+  if (input.action === "accept") {
+    trackAnalyticsEventAsync({
+      orgId: input.orgId,
+      eventName: ANALYTICS_EVENTS.SCHEDULE_ACCEPTED,
+      customerId: input.customerId,
+      entityType: "scheduled_event",
+      entityId: existing.id,
+      properties: { mode: existing.mode },
+    });
+  }
 
   if (input.action === "accept") {
     const accepter = await prisma.customer.findUnique({

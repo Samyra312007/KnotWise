@@ -17,6 +17,9 @@ const schema = z.object({
 });
 
 import { logAuditEvent } from "@/lib/audit";
+import { trackAnalyticsEventAsync } from "@/lib/analytics/track";
+import { ANALYTICS_EVENTS } from "@/lib/analytics/taxonomy";
+import { ensureCrmLead } from "@/lib/crm/leads";
 
 export async function POST(req: Request) {
   let parsed;
@@ -117,6 +120,13 @@ export async function POST(req: Request) {
     action: "client.signup",
     entityType: "customer",
     entityId: customer.id,
+  });
+
+  await ensureCrmLead({ orgId, customerId: customer.id, source: "signup" });
+  trackAnalyticsEventAsync({
+    orgId,
+    eventName: ANALYTICS_EVENTS.SIGNUP_COMPLETED,
+    customerId: customer.id,
   });
 
   return NextResponse.json({

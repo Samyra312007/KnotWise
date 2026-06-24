@@ -76,7 +76,7 @@ Each phase: **Problem → Stories → Goals / Non-goals → Acceptance → Metri
 - [x] UploadThing photo upload in wizard
 - [x] Step-by-step validation
 - [ ] Phone OTP on signup (P5)
-- [ ] Onboarding analytics events (P14)
+- [x] Onboarding analytics events (P14)
 
 **Metrics:** Signup completion rate; median time to 80% profile.
 
@@ -247,7 +247,7 @@ Each phase: **Problem → Stories → Goals / Non-goals → Acceptance → Metri
 **Goals:** Funnels; matchmaker dashboards; lead CRM; CSV import/export.  
 **Acceptance:** Signup → verified → intro → mutual → engaged dashboard.
 
-**Status:** Spec — [`13-Analytics-Metrics.md`](13-Analytics-Metrics.md)
+**Status:** Shipped — funnel dashboard, matchmaker metrics, CRM leads, CSV import/export, product event tracking
 
 ---
 

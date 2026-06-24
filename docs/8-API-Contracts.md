@@ -420,6 +420,35 @@ On accept for video mode, creates Daily.co room (`VIDEO_DRY_RUN=true` by default
 
 ---
 
+## 8.18 P14 — Analytics & CRM (shipped)
+
+### `GET /api/ops/analytics/funnel`
+
+**Auth:** Ops/owner  
+**Response:** `{ steps: FunnelStep[] }` — signup → verified → intro → accepted → mutual → engaged.
+
+### `GET /api/ops/analytics/dashboard?days=7`
+
+**Response:** intros sent, acceptance/mutual rates, avg hours to mutual, clients by stage, recent event counts.
+
+### `GET /api/ops/crm/leads?stage=`
+
+**Response:** `{ items: CrmLead[] }` with customer summary.
+
+### `PATCH /api/ops/crm/leads/[id]`
+
+**Body:** `{ stage?, priority?, notes?, nextFollowUpAt?, assigneeId?, markContacted? }`
+
+### `GET /api/ops/export/customers`
+
+**Response:** CSV attachment of org customer profiles.
+
+### `POST /api/ops/import/customers`
+
+**Body:** `{ csv: string }` or multipart `file` — creates customers, pool mirrors, CRM leads.
+
+---
+
 ## Acceptance criteria
 
 - [ ] Each P2–P11 phase adds §8.x section before implementation

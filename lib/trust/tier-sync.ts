@@ -1,5 +1,7 @@
 import { prisma } from "@/lib/db";
 import type { VerificationTier } from "@/lib/trust/tiers";
+import { trackAnalyticsEventAsync } from "@/lib/analytics/track";
+import { ANALYTICS_EVENTS } from "@/lib/analytics/taxonomy";
 
 export async function refreshCustomerVerificationTier(customerId: string): Promise<VerificationTier> {
   const customer = await prisma.customer.findUnique({
@@ -41,6 +43,14 @@ export async function refreshCustomerVerificationTier(customerId: string): Promi
       where: { id: customerId },
       data: { verificationTier: tier },
     });
+    if (tier === "verified" || tier === "premium") {
+      trackAnalyticsEventAsync({
+        orgId: customer.orgId,
+        eventName: ANALYTICS_EVENTS.VERIFICATION_TIER_UP,
+        customerId,
+        properties: { tier },
+      });
+    }
   }
 
   return tier;

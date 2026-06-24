@@ -5,6 +5,8 @@ import { dispatchC2cEvent, serializeC2cMessageEvent } from "@/lib/realtime/dispa
 import { isBlockedEitherWay } from "@/lib/c2c/blocks";
 import { sanitizeOrRejectMessage } from "@/lib/trust/content-filter";
 import { MAX_C2C_MESSAGE_LENGTH } from "@/lib/c2c/conversations";
+import { trackAnalyticsEventAsync } from "@/lib/analytics/track";
+import { ANALYTICS_EVENTS } from "@/lib/analytics/taxonomy";
 
 export async function listConversationMessages(input: {
   conversationId: string;
@@ -113,6 +115,14 @@ export async function sendConversationMessage(input: {
     entityType: "conversation",
     entityId: input.conversationId,
     metadata: { messageId: message.id, recipientId: counterpartId },
+  });
+
+  trackAnalyticsEventAsync({
+    orgId: input.orgId,
+    eventName: ANALYTICS_EVENTS.C2C_MESSAGE_SENT,
+    customerId: input.customerId,
+    entityType: "conversation",
+    entityId: input.conversationId,
   });
 
   await dispatchC2cEvent(

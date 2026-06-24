@@ -188,10 +188,10 @@ Every remaining consumer-dating gap maps to a phase and primary doc.
 
 | Gap | Phase | Primary doc | Status |
 |-----|-------|-------------|--------|
-| Matchmaker performance dashboards | P14 | doc 13 | Spec |
-| Funnel metrics (signup → engaged) | P14 | doc 13 | Spec |
-| CRM for leads | P14 | PRD §P14 | Spec |
-| Bulk import/export of profiles | P14 | PRD §P14 | Spec |
+| Matchmaker performance dashboards | P14 | doc 13 | Shipped |
+| Funnel metrics (signup → engaged) | P14 | doc 13 | Shipped |
+| CRM for leads | P14 | PRD §P14 | Shipped |
+| Bulk import/export of profiles | P14 | PRD §P14 | Shipped |
 | Multi-bureau / white-label support | Deferred | doc 0 §deferrals | Deferred |
 
 ### Legal & compliance

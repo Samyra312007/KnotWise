@@ -1,10 +1,13 @@
 import { prisma } from "@/lib/db";
 import type { Biodata } from "@/lib/types";
 import { customerUpdateFromBiodata } from "@/lib/profile/biodata";
-import { isProfileComplete } from "@/lib/profile/completeness";
+import { computeProfileCompleteness, isProfileComplete } from "@/lib/profile/completeness";
 import { isValidPhone } from "@/lib/profile/phone";
 import { ONBOARDING_STEP_COUNT } from "@/lib/profile/options";
 import { logAuditEvent } from "@/lib/audit";
+import { trackAnalyticsEventAsync } from "@/lib/analytics/track";
+import { ANALYTICS_EVENTS } from "@/lib/analytics/taxonomy";
+import { syncCrmLeadStage } from "@/lib/crm/leads";
 
 export async function finalizeOnboarding(clientId: string, biodata: Biodata) {
   if (!isProfileComplete(biodata)) {
@@ -76,6 +79,14 @@ export async function finalizeOnboarding(clientId: string, biodata: Biodata) {
     entityId: account.customerId,
     metadata: { completeness: isProfileComplete(biodata) },
   });
+
+  trackAnalyticsEventAsync({
+    orgId: account.customer.orgId,
+    eventName: ANALYTICS_EVENTS.ONBOARDING_COMPLETED,
+    customerId: account.customerId,
+    properties: { completeness: computeProfileCompleteness(biodata) },
+  });
+  void syncCrmLeadStage(account.customerId).catch(() => undefined);
 
   return { ok: true as const };
 }

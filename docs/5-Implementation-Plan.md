@@ -84,7 +84,7 @@ flowchart LR
 - [x] UploadThing in onboarding wizard
 - [x] Step validation per wizard step
 - [x] Phone format validation (OTP deferred to P5)
-- [ ] Onboarding analytics events (P14)
+- [x] Onboarding analytics events (P14)
 
 **Done when:** New user completes signup → 80% profile → Active stage without matchmaker manual create.
 
@@ -336,7 +336,7 @@ flowchart LR
 
 ---
 
-### P14 — Analytics & ops CRM | Spec
+### P14 — Analytics & ops CRM | **Shipped**
 
 | | |
 |---|---|
@@ -344,7 +344,16 @@ flowchart LR
 | **Depends on** | P12 |
 | **Effort** | ~3 weeks |
 
-**Checklist:** See [`13-Analytics-Metrics.md`](13-Analytics-Metrics.md).
+**Checklist**
+
+- [x] `AnalyticsEvent` model + self-hosted event tracking (`lib/analytics/*`)
+- [x] Event wiring for signup, onboarding, intros, mutual, C2C, discovery, verification, billing, schedules
+- [x] `GET /api/ops/analytics/funnel` + `/dashboard`
+- [x] `CrmLead` model + `GET/PATCH /api/ops/crm/leads`
+- [x] `GET /api/ops/export/customers` + `POST /api/ops/import/customers` (CSV)
+- [x] Ops `/ops/analytics` funnel, dashboard, CRM, import UI
+
+**Done when:** Ops sees signup → engaged funnel; leads tracked; CSV import/export works.
 
 ---
 

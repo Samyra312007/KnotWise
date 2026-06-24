@@ -138,6 +138,12 @@ export function OpsDashboard({ role }: { role: string }) {
     <section className="py-16">
       <h1 className="font-display text-display-m text-ink">Ops desk</h1>
       <p className="mt-2 text-ink-mute font-mono text-[11px] uppercase tracking-[0.18em]">{role} view</p>
+      <Link
+        href="/ops/analytics"
+        className="mt-4 inline-block font-mono text-[10px] uppercase tracking-[0.18em] text-vermilion"
+      >
+        Analytics & CRM →
+      </Link>
 
       <div className="mt-12">
         <h2 className="font-mono text-[11px] uppercase tracking-[0.18em] text-ink-mute mb-6">

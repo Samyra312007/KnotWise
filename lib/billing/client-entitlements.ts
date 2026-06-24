@@ -136,6 +136,25 @@ export async function activateClientPlan(input: {
     });
   }
 
+  if (input.plan !== "included") {
+    const customer = await prisma.customer.findUnique({
+      where: { id: input.customerId },
+      select: { orgId: true },
+    });
+    if (customer) {
+      const { trackAnalyticsEventAsync } = await import("@/lib/analytics/track");
+      const { ANALYTICS_EVENTS } = await import("@/lib/analytics/taxonomy");
+      const { syncCrmLeadStage } = await import("@/lib/crm/leads");
+      trackAnalyticsEventAsync({
+        orgId: customer.orgId,
+        eventName: ANALYTICS_EVENTS.SUBSCRIPTION_PURCHASED,
+        customerId: input.customerId,
+        properties: { plan: input.plan },
+      });
+      void syncCrmLeadStage(input.customerId).catch(() => undefined);
+    }
+  }
+
   return billing;
 }
 

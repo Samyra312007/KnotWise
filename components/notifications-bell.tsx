@@ -82,11 +82,19 @@ export function NotificationsBell() {
 export function OpsNavLink({ role }: { role?: string }) {
   if (role !== "ops" && role !== "owner") return null;
   return (
-    <Link
-      href="/ops"
-      className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-mute hover:text-ink-warm hidden md:inline"
-    >
-      Ops
-    </Link>
+    <>
+      <Link
+        href="/ops"
+        className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-mute hover:text-ink-warm hidden md:inline"
+      >
+        Ops
+      </Link>
+      <Link
+        href="/ops/analytics"
+        className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-mute hover:text-ink-warm hidden md:inline"
+      >
+        Analytics
+      </Link>
+    </>
   );
 }

@@ -309,7 +309,41 @@ Migration: `20260623300000_scheduling`
 
 ---
 
-## 4.11 P9 — Discovery
+## 4.11 P14 — Analytics & CRM (shipped)
+
+```prisma
+model AnalyticsEvent {
+  id         String   @id @default(cuid())
+  orgId      String
+  eventName  String
+  customerId String?
+  entityType String?
+  entityId   String?
+  properties String   @default("{}")
+  createdAt  DateTime @default(now())
+}
+
+model CrmLead {
+  id             String    @id @default(cuid())
+  orgId          String
+  customerId     String    @unique
+  stage          String    @default("lead")
+  priority       String    @default("normal")
+  source         String    @default("signup")
+  notes          String?
+  lastContactAt  DateTime?
+  nextFollowUpAt DateTime?
+  assigneeId     String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+```
+
+Migration: `20260623310000_analytics_crm`
+
+---
+
+## 4.12 P9 — Discovery
 
 ```prisma
 model DiscoveryInterest {

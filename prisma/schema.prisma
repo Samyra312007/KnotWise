@@ -25,6 +25,8 @@ model Organization {
   modelVersions     ModelVersion[]
   auditEvents       AuditEvent[]
   matchExperiments  MatchExperiment[]
+  analyticsEvents   AnalyticsEvent[]
+  crmLeads          CrmLead[]
 }
 
 model Membership {
@@ -56,6 +58,7 @@ model Matchmaker {
   handoffsFrom  Handoff[]          @relation("HandoffFrom")
   handoffsTo    Handoff[]          @relation("HandoffTo")
   mobileTokens MobileAuthToken[]
+  crmLeadsAssigned CrmLead[]        @relation("LeadAssignee")
 }
 
 model Customer {
@@ -106,6 +109,8 @@ model Customer {
   billingCheckoutSessions BillingCheckoutSession[]
   billingInvoices       ClientBillingInvoice[]
   preferenceSignals     PreferenceSignal[]
+  analyticsEvents     AnalyticsEvent[]
+  crmLead               CrmLead?
 
   @@index([orgId])
   @@index([stage])
@@ -807,4 +812,43 @@ model MatchExperiment {
   org Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
 
   @@unique([orgId, key])
+}
+
+model AnalyticsEvent {
+  id         String   @id @default(cuid())
+  orgId      String
+  eventName  String
+  customerId String?
+  entityType String?
+  entityId   String?
+  properties String   @default("{}")
+  createdAt  DateTime @default(now())
+
+  org      Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  customer Customer?    @relation(fields: [customerId], references: [id], onDelete: SetNull)
+
+  @@index([orgId, eventName, createdAt])
+  @@index([orgId, createdAt])
+}
+
+model CrmLead {
+  id             String    @id @default(cuid())
+  orgId          String
+  customerId     String    @unique
+  stage          String    @default("lead")
+  priority       String    @default("normal")
+  source         String    @default("signup")
+  notes          String?
+  lastContactAt  DateTime?
+  nextFollowUpAt DateTime?
+  assigneeId     String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  org      Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  customer Customer     @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  assignee Matchmaker?  @relation("LeadAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+
+  @@index([orgId, stage])
+  @@index([orgId, nextFollowUpAt])
 }

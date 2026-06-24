@@ -24,6 +24,9 @@ import {
 import { sanitizeBiodataForSave, validateOnboardingStep } from "@/lib/onboarding/validate";
 import type { Biodata } from "@/lib/types";
 import { isValidPhone } from "@/lib/profile/phone";
+import { trackAnalyticsEventAsync } from "@/lib/analytics/track";
+import { ANALYTICS_EVENTS } from "@/lib/analytics/taxonomy";
+import { computeProfileCompleteness } from "@/lib/profile/completeness";
 
 const patchSchema = z.object({
   step: z.number().int().min(0).max(ONBOARDING_STEP_COUNT - 1).optional(),
@@ -137,6 +140,15 @@ export async function PATCH(req: Request) {
       },
     }),
   ]);
+
+  if (parsed.step !== undefined && step > currentStep) {
+    trackAnalyticsEventAsync({
+      orgId: account.customer.orgId,
+      eventName: ANALYTICS_EVENTS.ONBOARDING_STEP,
+      customerId: account.customerId,
+      properties: { step, completeness: computeProfileCompleteness(biodata) },
+    });
+  }
 
   if (parsed.complete) {
     const result = await finalizeOnboarding(account.id, biodata);

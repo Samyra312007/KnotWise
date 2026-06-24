@@ -6,6 +6,8 @@ import { getPrimaryMatchmakerId } from "@/lib/access/customers";
 import { ensureCustomerPoolProfile, orderedClientPair } from "@/lib/matching/pool-mirror";
 import { createConversationForMutual } from "@/lib/c2c/conversations";
 import { notifyMutualMatch } from "@/lib/push/triggers";
+import { trackAnalyticsEventAsync } from "@/lib/analytics/track";
+import { ANALYTICS_EVENTS } from "@/lib/analytics/taxonomy";
 import type { Biodata } from "@/lib/types";
 
 export type IntroDecision = "accept" | "decline";
@@ -51,10 +53,26 @@ export async function markSuggestionViewed(suggestionId: string, customerId: str
   if (suggestion.status !== "sent") return suggestion;
   if (suggestion.viewedAt) return suggestion;
 
-  return prisma.matchSuggestion.update({
+  const updated = await prisma.matchSuggestion.update({
     where: { id: suggestionId },
     data: { status: "viewed", viewedAt: new Date() },
   });
+
+  const customer = await prisma.customer.findUnique({
+    where: { id: customerId },
+    select: { orgId: true },
+  });
+  if (customer) {
+    trackAnalyticsEventAsync({
+      orgId: customer.orgId,
+      eventName: ANALYTICS_EVENTS.INTRO_VIEWED,
+      customerId,
+      entityType: "match_suggestion",
+      entityId: suggestionId,
+    });
+  }
+
+  return updated;
 }
 
 export async function submitIntroFeedback(input: {
@@ -114,8 +132,24 @@ export async function submitIntroFeedback(input: {
   }
 
   if (input.decision === "decline") {
+    trackAnalyticsEventAsync({
+      orgId: input.orgId,
+      eventName: ANALYTICS_EVENTS.INTRO_DECLINED,
+      customerId: input.customerId,
+      entityType: "match_suggestion",
+      entityId: suggestion.id,
+      properties: { reason: input.reason },
+    });
     return { status: "declined" as const };
   }
+
+  trackAnalyticsEventAsync({
+    orgId: input.orgId,
+    eventName: ANALYTICS_EVENTS.INTRO_ACCEPTED,
+    customerId: input.customerId,
+    entityType: "match_suggestion",
+    entityId: suggestion.id,
+  });
 
   const counterpart = await findCounterpartSuggestion(suggestion);
   if (!counterpart || counterpart.status !== "accepted") {
@@ -218,6 +252,21 @@ async function createMutualMatch(input: {
       clientBId,
       suggestionIds: [input.suggestionA.id, input.suggestionB.id],
     },
+  });
+
+  trackAnalyticsEventAsync({
+    orgId: input.orgId,
+    eventName: ANALYTICS_EVENTS.MUTUAL_CREATED,
+    customerId: clientAId,
+    entityType: "mutual_match",
+    entityId: mutual.id,
+  });
+  trackAnalyticsEventAsync({
+    orgId: input.orgId,
+    eventName: ANALYTICS_EVENTS.MUTUAL_CREATED,
+    customerId: clientBId,
+    entityType: "mutual_match",
+    entityId: mutual.id,
   });
 
   return mutual;

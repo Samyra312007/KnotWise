@@ -263,6 +263,8 @@ async function main() {
   await prisma.magicLinkToken.deleteMany();
   await prisma.clientIntroRequest.deleteMany();
   await prisma.preferenceSignal.deleteMany();
+  await prisma.analyticsEvent.deleteMany();
+  await prisma.crmLead.deleteMany();
   await prisma.astroProfile.deleteMany();
   await prisma.matchExperiment.deleteMany();
   await prisma.clientBillingInvoice.deleteMany();
