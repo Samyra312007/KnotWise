@@ -228,7 +228,27 @@ Lists registered push tokens (preview only).
 
 ---
 
-## 8.10 P9 — Discovery (planned)
+## 8.10 P8 — Mobile client auth (shipped)
+
+### `POST /api/client/auth/token`
+
+**Auth:** Public  
+**Body:** `{ "magicToken": string }` — one-time token from magic link email  
+**Response:** `{ "ok": true, "token": string, "needsOnboarding": boolean, "client": {...} }`
+
+### `GET /api/client/auth/token`
+
+**Auth:** `Authorization: Bearer` — validates mobile session
+
+### `DELETE /api/client/auth/token`
+
+**Auth:** Bearer — revokes mobile session
+
+All `/api/client/*` routes accept cookie session (web) or Bearer token (mobile).
+
+---
+
+## 8.11 P9 — Discovery (planned)
 
 ### `GET /api/client/discover?city=&ageMin=&cursor=`
 
@@ -240,7 +260,7 @@ Notifies assigned matchmaker.
 
 ---
 
-## 8.11 P10 — Family (planned)
+## 8.12 P10 — Family (planned)
 
 ### `POST /api/family/delegates/invite`
 
@@ -250,7 +270,7 @@ Notifies assigned matchmaker.
 
 ---
 
-## 8.12 Webhooks (shipped + planned)
+## 8.13 Webhooks (shipped + planned)
 
 | Path | Provider |
 |------|----------|

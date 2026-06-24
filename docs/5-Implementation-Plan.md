@@ -194,7 +194,7 @@ flowchart LR
 
 ---
 
-### P8 — Mobile app v1 | Spec
+### P8 — Mobile app v1 | **Shipped**
 
 | | |
 |---|---|
@@ -202,7 +202,20 @@ flowchart LR
 | **Depends on** | P7 |
 | **Effort** | ~4 weeks |
 
-**Checklist:** See [`14-Mobile-App-Spec.md`](14-Mobile-App-Spec.md).
+**Checklist**
+
+- [x] Client bearer auth (`POST/GET/DELETE /api/client/auth/token`)
+- [x] Magic link login + SecureStore session
+- [x] Tab navigation: Home, Intros, Chat, Profile
+- [x] Intro list/detail with accept/decline
+- [x] C2C chat list + conversation
+- [x] Onboarding, profile edit, matchmaker messages
+- [x] Notification preferences screen
+- [x] Push registration + deep link handling
+- [x] EAS `preview` + `production` profiles
+- [x] Expanded `@knotwise/api-client` client API
+
+**Done when:** Login → intro → mutual → chat works on device via Expo.
 
 ---
 

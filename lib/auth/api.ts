@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { headers } from "next/headers";
 import { getSession, getClientSession, type SessionData } from "./session";
 import type { MembershipRole } from "./roles";
 import { isOpsOrOwner } from "./roles";
@@ -55,6 +56,14 @@ export type ClientSession = SessionData & {
 };
 
 export async function requireApiClientSession(): Promise<ClientSession | NextResponse<ApiError>> {
+  const headerStore = await headers();
+  const auth = headerStore.get("authorization");
+  if (auth?.startsWith("Bearer ")) {
+    const { validateClientMobileToken } = await import("@/lib/auth/client-mobile");
+    const bearer = await validateClientMobileToken(auth.slice(7));
+    if (bearer) return bearer;
+  }
+
   const session = await getClientSession();
   if (!session.clientId || !session.customerId || session.userType !== "client") {
     return unauthorized("Client sign-in required.");

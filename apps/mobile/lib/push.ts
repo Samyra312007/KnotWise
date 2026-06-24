@@ -1,6 +1,7 @@
 import * as Notifications from "expo-notifications";
 import * as Device from "expo-device";
 import { Platform } from "react-native";
+import type { ClientApi } from "@knotwise/api-client";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -10,7 +11,7 @@ Notifications.setNotificationHandler({
   }),
 });
 
-export async function registerForPushNotifications(apiBaseUrl: string): Promise<string | null> {
+export async function registerForPushNotifications(apiBaseUrl: string, api: ClientApi): Promise<string | null> {
   if (!Device.isDevice) return null;
 
   const permission = await Notifications.getPermissionsAsync();
@@ -22,25 +23,27 @@ export async function registerForPushNotifications(apiBaseUrl: string): Promise<
   if (finalStatus !== "granted") return null;
 
   const token = (await Notifications.getExpoPushTokenAsync()).data;
+  await api.registerDevice(
+    token,
+    Platform.OS === "ios" ? "ios" : Platform.OS === "android" ? "android" : "web"
+  );
 
-  await fetch(`${apiBaseUrl}/api/client/devices`, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    credentials: "include",
-    body: JSON.stringify({
-      token,
-      platform: Platform.OS === "ios" ? "ios" : Platform.OS === "android" ? "android" : "web",
-    }),
-  });
-
+  void apiBaseUrl;
   return token;
 }
 
-export function listenForNotificationNavigation(onNavigate: (url: string) => void) {
+export function listenForNotificationNavigation(onNavigate: (path: string) => void) {
   const subscription = Notifications.addNotificationResponseReceivedListener((response) => {
     const data = response.notification.request.content.data as { url?: string; deepLink?: string };
-    if (data.url) onNavigate(data.url);
-    else if (data.deepLink) onNavigate(data.deepLink);
+    if (data.url) {
+      const match = data.url.match(/\/portal(\/.*)$/);
+      onNavigate(match?.[1] ?? "/");
+      return;
+    }
+    if (data.deepLink) {
+      const match = data.deepLink.match(/portal(\/.*)$/);
+      onNavigate(match?.[1] ?? "/");
+    }
   });
   return () => subscription.remove();
 }

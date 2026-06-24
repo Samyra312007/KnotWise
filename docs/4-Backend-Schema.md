@@ -189,7 +189,24 @@ Migration: `20260623230000_trust_verification`
 
 ---
 
-## 4.7 P7 — Push
+## 4.8 P8 — Mobile client auth
+
+```prisma
+model ClientMobileAuthToken {
+  id        String    @id @default(cuid())
+  clientId  String
+  tokenHash String    @unique
+  expiresAt DateTime
+  createdAt DateTime  @default(now())
+  revokedAt DateTime?
+}
+```
+
+Migration: `20260623250000_client_mobile_auth`
+
+Bearer tokens validated in `requireApiClientSession()` via `Authorization` header.
+
+---
 
 ```prisma
 model DeviceToken {

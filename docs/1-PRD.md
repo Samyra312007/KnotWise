@@ -189,7 +189,7 @@ Each phase: **Problem → Stories → Goals / Non-goals → Acceptance → Metri
 **Goals:** Store-ready Expo app; portal parity; secure token storage.  
 **Acceptance:** TestFlight/Play Internal; login, intros, chat, profile.
 
-**Status:** Spec — [`14-Mobile-App-Spec.md`](14-Mobile-App-Spec.md)
+**Status:** Shipped — `apps/mobile/` Expo Router app with bearer auth
 
 ---
 

@@ -256,6 +256,7 @@ model ClientAccount {
   verificationAttempts VerificationAttempt[]
   deviceTokens DeviceToken[]
   notificationPreference NotificationPreference?
+  mobileTokens ClientMobileAuthToken[]
 }
 
 model MagicLinkToken {
@@ -577,4 +578,17 @@ model NotificationPreference {
   reminderPush Boolean @default(true)
 
   client ClientAccount @relation(fields: [clientId], references: [id], onDelete: Cascade)
+}
+
+model ClientMobileAuthToken {
+  id        String    @id @default(cuid())
+  clientId  String
+  tokenHash String    @unique
+  expiresAt DateTime
+  createdAt DateTime  @default(now())
+  revokedAt DateTime?
+
+  client ClientAccount @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([clientId])
 }

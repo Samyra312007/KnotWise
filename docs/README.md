@@ -33,7 +33,8 @@
 | Consumer P5 | Trust & verification | PRD §P5, doc 9, ADR 003 | Shipped |
 | Consumer P6 | Realtime messaging | PRD §P6, doc 17, ADR 002 | Shipped |
 | Consumer P7 | Push notifications | PRD §P7, doc 17, doc 14 | Shipped |
-| Consumer P8–P16 | Real dating/matrimonial product | PRD §P8–P16, docs 8–17 | Spec only |
+| Consumer P8 | Mobile app v1 | PRD §P8, doc 14 | Shipped |
+| Consumer P9–P16 | Real dating/matrimonial product | PRD §P9–P16, docs 8–17 | Spec only |
 
 ---
 
@@ -50,7 +51,8 @@
 | P5 trust & verification | Shipped (`app/portal/trust`, MSG91 OTP, reports) |
 | P6 realtime messaging | Shipped (`lib/realtime/*`, Pusher + Redis + SSE) |
 | P7 push notifications | Shipped (`lib/push/*`, Expo, device tokens, preferences) |
-| P8–P16 consumer features | Spec only (this library) |
+| P8 mobile app v1 | Shipped (`apps/mobile/`, client bearer auth, Expo Router) |
+| P9–P16 consumer features | Spec only (this library) |
 
 ---
 
@@ -152,7 +154,7 @@ Every remaining consumer-dating gap maps to a phase and primary doc.
 
 | Gap | Phase | Primary doc | Status |
 |-----|-------|-------------|--------|
-| Production iOS/Android apps | P8 | doc 14 | Spec |
+| Production iOS/Android apps | P8 | doc 14 | Shipped |
 | Push notifications | P7 | doc 17 | Shipped |
 | Deep links and app install flows | P7, P8 | doc 14, doc 17 | Shipped (P7) |
 

@@ -12,7 +12,7 @@
 - **Expo SDK 52+** in [`apps/mobile/`](../apps/mobile/)
 - Shared types: `@knotwise/types`
 - API client: `@knotwise/api-client`
-- Auth: Bearer token via `POST /api/auth/token` (matchmaker) + client token endpoint P8
+- Auth: Bearer token via `POST /api/client/auth/token` (mobile) or cookie session (web)
 
 ---
 
@@ -87,8 +87,10 @@ Matchmaker full console on mobile (read-only client list optional later).
 
 ## Acceptance criteria
 
-- [ ] TestFlight build passes Apple review guidelines
-- [ ] Login → intro → chat works on device
+- [x] Login → intro → chat flow implemented in Expo app
+- [x] Bearer auth + SecureStore + push registration
+- [ ] TestFlight build passes Apple review guidelines (store submission)
+- [ ] Play Internal testing sign-off
 
 ## Open questions
 
