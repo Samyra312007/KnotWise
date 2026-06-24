@@ -7,7 +7,6 @@ import { Search } from "lucide-react";
 import { StagePill } from "@/components/ui/stage-pill";
 import { EmptyState } from "@/components/empty-state";
 import type { CustomerListItem, Stage } from "@/lib/types";
-import { STAGES } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const STAGE_FILTERS: Stage[] = ["Active", "Match Sent", "In Conversation", "Onboarding", "Paused"];

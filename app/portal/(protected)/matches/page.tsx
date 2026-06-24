@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { RemoteImage } from "@/components/ui/remote-image";
 import type { IntroReveal } from "@/lib/matching/reveal";
 
 type MatchItem = {
@@ -55,9 +56,11 @@ export default function PortalMatchesPage() {
             <article key={m.id} className="border-t border-ink/12 pt-8">
               <div className="flex gap-4 items-start">
                 {m.candidate.photoUrl ? (
-                  <img
+                  <RemoteImage
                     src={m.candidate.photoUrl}
                     alt=""
+                    width={80}
+                    height={80}
                     className="size-20 object-cover border border-ink/12 shrink-0"
                   />
                 ) : null}

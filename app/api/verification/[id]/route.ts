@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { requireApiSession, requireApiOps, notFound } from "@/lib/auth/api";
+import { requireApiOps, notFound } from "@/lib/auth/api";
 import { z } from "zod";
 import { refreshCustomerVerificationTier } from "@/lib/trust/tier-sync";
 

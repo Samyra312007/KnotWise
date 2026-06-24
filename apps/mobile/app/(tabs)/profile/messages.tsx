@@ -1,7 +1,7 @@
 import * as React from "react";
 import { FlatList, KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import type { ThreadMessage } from "@knotwise/api-client";
-import { getAuthedClient } from "@/lib/api";
+import { getAuthedClient, runWithAuthedClient } from "@/lib/api";
 import { LoadingView } from "@/components/LoadingView";
 import { colors, spacing } from "@/lib/theme";
 
@@ -13,15 +13,17 @@ export default function MatchmakerMessagesScreen() {
   const [loaded, setLoaded] = React.useState(false);
 
   React.useEffect(() => {
-    void getAuthedClient()
-      ?.threadMessages()
-      .then((data) => setMessages(data.messages))
+    void runWithAuthedClient((api) => api.threadMessages())
+      .then((data) => {
+        if (data) setMessages(data.messages);
+      })
       .catch(() => undefined)
       .finally(() => setLoaded(true));
     const timer = setInterval(() => {
-      void getAuthedClient()
-        ?.threadMessages()
-        .then((data) => setMessages(data.messages))
+      void runWithAuthedClient((api) => api.threadMessages())
+        .then((data) => {
+          if (data) setMessages(data.messages);
+        })
         .catch(() => undefined);
     }, 4000);
     return () => clearInterval(timer);

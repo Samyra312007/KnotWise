@@ -3,7 +3,7 @@ import { requireApiSession, requireApiRole, forbidden } from "@/lib/auth/api";
 import { getStripe, ensureOrgStripeCustomer } from "@/lib/billing/stripe";
 import { prisma } from "@/lib/db";
 
-export async function POST(req: Request) {
+export async function POST(_req: Request) {
   const session = await requireApiRole(["owner"]);
   if (session instanceof NextResponse) return session;
 

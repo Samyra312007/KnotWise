@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { router } from "expo-router";
-import { getAuthedClient } from "@/lib/api";
+import { getAuthedClient, runWithAuthedClient } from "@/lib/api";
 import { LoadingView } from "@/components/LoadingView";
 import { colors, spacing } from "@/lib/theme";
 
@@ -14,9 +14,12 @@ export default function ProfileEditScreen() {
   const [loaded, setLoaded] = React.useState(false);
 
   React.useEffect(() => {
-    void getAuthedClient()
-      ?.profile()
+    void runWithAuthedClient((api) => api.profile())
       .then((data) => {
+        if (!data) {
+          setLoaded(true);
+          return;
+        }
         setBio(String(data.profile.bio ?? ""));
         setCity(String(data.profile.city ?? ""));
         setLoaded(true);

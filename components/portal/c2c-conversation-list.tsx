@@ -3,6 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { format } from "date-fns";
+import { RemoteImage } from "@/components/ui/remote-image";
 
 type ConversationItem = {
   id: string;
@@ -48,9 +49,11 @@ export function C2cConversationList() {
         <li key={item.id} className="border-t border-ink/12 pt-4">
           <Link href={`/portal/chat/${item.id}`} className="flex items-center gap-4 group">
             {item.counterpart.photoUrl ? (
-              <img
+              <RemoteImage
                 src={item.counterpart.photoUrl}
                 alt=""
+                width={48}
+                height={48}
                 className="size-12 object-cover border border-ink/12"
               />
             ) : (

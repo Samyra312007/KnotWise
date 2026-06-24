@@ -4,6 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { RemoteImage } from "@/components/ui/remote-image";
 
 type ProfileRevisionItem = {
   id: string;
@@ -199,7 +200,7 @@ export function OpsDashboard({ role }: { role: string }) {
                       {formatValue(r.oldValue)} → {formatValue(r.newValue)}
                     </div>
                     {r.fieldPath === "photoUrl" && typeof r.newValue === "string" ? (
-                      <img src={r.newValue} alt="" className="mt-3 size-20 object-cover border border-ink/12" />
+                      <RemoteImage src={r.newValue} alt="" width={80} height={80} className="mt-3 size-20 object-cover border border-ink/12" />
                     ) : null}
                   </div>
                   <div className="flex gap-2 shrink-0">

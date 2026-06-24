@@ -2,7 +2,7 @@ import * as React from "react";
 import { FlatList, Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { Link } from "expo-router";
 import type { MatchListItem } from "@knotwise/api-client";
-import { getAuthedClient } from "@/lib/api";
+import { runWithAuthedClient } from "@/lib/api";
 import { LoadingView } from "@/components/LoadingView";
 import { colors, spacing } from "@/lib/theme";
 
@@ -27,9 +27,8 @@ export default function MatchesScreen() {
   const [items, setItems] = React.useState<MatchListItem[] | null>(null);
 
   React.useEffect(() => {
-    void getAuthedClient()
-      ?.matches()
-      .then((data) => setItems(data.items))
+    void runWithAuthedClient((api) => api.matches())
+      .then((data) => setItems(data?.items ?? []))
       .catch(() => setItems([]));
   }, []);
 

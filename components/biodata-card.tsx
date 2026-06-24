@@ -74,7 +74,7 @@ export function BiodataCard({ biodata }: { biodata: Biodata }) {
       {biodata.bio && (
         <Section index={5} title="Bio">
           <Field label="In their words">
-            <span className="text-body-l italic text-ink-warm">"{biodata.bio}"</span>
+            <span className="text-body-l italic text-ink-warm">&ldquo;{biodata.bio}&rdquo;</span>
           </Field>
         </Section>
       )}

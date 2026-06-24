@@ -2,7 +2,7 @@ import * as React from "react";
 import { FlatList, KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import type { ChatMessage, ConversationListItem } from "@knotwise/api-client";
-import { getAuthedClient } from "@/lib/api";
+import { getAuthedClient, runWithAuthedClient } from "@/lib/api";
 import { LoadingView } from "@/components/LoadingView";
 import { colors, spacing } from "@/lib/theme";
 
@@ -28,9 +28,10 @@ export default function ChatDetailScreen() {
   React.useEffect(() => {
     void load().catch(() => undefined);
     const timer = setInterval(() => {
-      void getAuthedClient()
-        ?.conversationMessages(id!)
-        .then((data) => setMessages(data.messages))
+      void runWithAuthedClient((api) => api.conversationMessages(id!))
+        .then((data) => {
+          if (data) setMessages(data.messages);
+        })
         .catch(() => undefined);
     }, 4000);
     return () => clearInterval(timer);

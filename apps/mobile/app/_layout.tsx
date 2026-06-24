@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Linking } from "react-native";
+import * as Linking from "expo-linking";
 import { Redirect, Stack, useRouter } from "expo-router";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import { listenForNotificationNavigation } from "@/lib/push";

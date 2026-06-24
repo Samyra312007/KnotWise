@@ -4,7 +4,13 @@ const nextConfig: NextConfig = {
   experimental: {
     typedRoutes: false,
   },
-  instrumentationHook: true,
+  serverExternalPackages: ["@sentry/node", "ioredis"],
+  images: {
+    remotePatterns: [
+      { protocol: "https", hostname: "**" },
+      { protocol: "http", hostname: "localhost" },
+    ],
+  },
 };
 
 export default nextConfig;

@@ -3,6 +3,7 @@
 import * as React from "react";
 import { toast } from "sonner";
 import { UploadButton } from "@/lib/uploadthing";
+import { RemoteImage } from "@/components/ui/remote-image";
 
 export function OnboardingPhotoUpload({
   customerId,
@@ -17,9 +18,11 @@ export function OnboardingPhotoUpload({
     <div className="space-y-4">
       {photoUrl ? (
         <div className="flex items-center gap-4">
-          <img
+          <RemoteImage
             src={photoUrl}
             alt="Profile"
+            width={96}
+            height={96}
             className="size-24 object-cover border border-ink/12"
           />
           <p className="text-[13px] text-ink-mute">Photo added. You can replace it below.</p>

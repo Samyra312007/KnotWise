@@ -3,6 +3,7 @@
 import * as React from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { RemoteImage } from "@/components/ui/remote-image";
 import { Textarea } from "@/components/ui/textarea";
 
 type DiscoverItem = {
@@ -159,7 +160,7 @@ export function DiscoveryFeedPanel() {
             <article key={item.poolProfileId} className="border-t border-ink/12 pt-8">
               <div className="flex gap-4">
                 {item.candidate.photoUrl ? (
-                  <img src={item.candidate.photoUrl} alt="" className="size-20 object-cover border border-ink/12" />
+                  <RemoteImage src={item.candidate.photoUrl} alt="" width={80} height={80} className="size-20 object-cover border border-ink/12" />
                 ) : null}
                 <div className="flex-1">
                   <div className="flex items-start justify-between gap-3">

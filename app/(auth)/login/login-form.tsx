@@ -75,7 +75,7 @@ export function LoginForm() {
           <div
             className="font-mono text-[11px] uppercase tracking-[0.18em] text-ink-mute mt-2"
           >
-            The matchmaker's bureau — est. 2026
+            The matchmaker&apos;s bureau — est. 2026
           </div>
         </div>
 

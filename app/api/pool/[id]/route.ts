@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireApiSession, notFound } from "@/lib/auth/api";
-import { canAccessCustomer } from "@/lib/access/customers";
 import type { Biodata } from "@/lib/types";
 
 export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> }) {

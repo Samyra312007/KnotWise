@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
 import { getStripe, syncSubscriptionFromStripe } from "@/lib/billing/stripe";
 import Stripe from "stripe";
 

@@ -4,6 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { RemoteImage } from "@/components/ui/remote-image";
 import { Textarea } from "@/components/ui/textarea";
 
 type PendingRevision = {
@@ -71,7 +72,7 @@ export default function PortalProfilePage() {
 
       <div className="mt-10 flex gap-6 items-start">
         {photoUrl ? (
-          <img src={photoUrl} alt="Profile" className="size-28 object-cover border border-ink/12 shrink-0" />
+          <RemoteImage src={photoUrl} alt="Profile" width={112} height={112} className="size-28 object-cover border border-ink/12 shrink-0" />
         ) : null}
         <dl className="grid grid-cols-2 gap-4 text-[14px] flex-1">
           <div>
@@ -105,7 +106,7 @@ export default function PortalProfilePage() {
           <ul className="flex flex-wrap gap-2">
             {photos.map((p) => (
               <li key={p.id}>
-                <img src={p.url} alt="" className="size-16 object-cover border border-ink/12" />
+                <RemoteImage src={p.url} alt="" width={64} height={64} className="size-16 object-cover border border-ink/12" />
               </li>
             ))}
           </ul>

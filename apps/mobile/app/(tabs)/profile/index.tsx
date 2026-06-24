@@ -2,7 +2,7 @@ import * as React from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { Link } from "expo-router";
 import { useAuth } from "@/lib/auth";
-import { getAuthedClient } from "@/lib/api";
+import { runWithAuthedClient } from "@/lib/api";
 import { LoadingView } from "@/components/LoadingView";
 import { colors, spacing } from "@/lib/theme";
 
@@ -15,9 +15,10 @@ export default function ProfileScreen() {
   } | null>(null);
 
   React.useEffect(() => {
-    void getAuthedClient()
-      ?.profile()
-      .then(setProfile)
+    void runWithAuthedClient((api) => api.profile())
+      .then((data) => {
+        if (data) setProfile(data);
+      })
       .catch(() => undefined);
   }, []);
 

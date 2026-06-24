@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { router } from "expo-router";
-import { getAuthedClient } from "@/lib/api";
+import { getAuthedClient, runWithAuthedClient } from "@/lib/api";
 import type { OnboardingState } from "@knotwise/api-client";
 import { LoadingView } from "@/components/LoadingView";
 import { colors, spacing } from "@/lib/theme";
@@ -17,9 +17,9 @@ export default function OnboardingScreen() {
   const [error, setError] = React.useState("");
 
   React.useEffect(() => {
-    void getAuthedClient()
-      ?.onboarding()
+    void runWithAuthedClient((api) => api.onboarding())
       .then((data) => {
+        if (!data) return;
         setState(data);
         setCity(String(data.biodata.city ?? ""));
         setBio(String(data.biodata.bio ?? ""));

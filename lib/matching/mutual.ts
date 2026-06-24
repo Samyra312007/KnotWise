@@ -181,7 +181,6 @@ async function createMutualMatch(input: {
   if (existing) return existing;
 
   const [clientAId, clientBId] = orderedClientPair(input.suggestionA.customerId, input.suggestionB.customerId);
-  const now = new Date();
 
   const mutual = await prisma.$transaction(async (tx) => {
     const row = await tx.mutualMatch.create({

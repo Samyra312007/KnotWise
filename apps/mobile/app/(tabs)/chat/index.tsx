@@ -2,7 +2,7 @@ import * as React from "react";
 import { FlatList, Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { Link } from "expo-router";
 import type { ConversationListItem } from "@knotwise/api-client";
-import { getAuthedClient } from "@/lib/api";
+import { runWithAuthedClient } from "@/lib/api";
 import { LoadingView } from "@/components/LoadingView";
 import { colors, spacing } from "@/lib/theme";
 
@@ -10,9 +10,8 @@ export default function ChatListScreen() {
   const [items, setItems] = React.useState<ConversationListItem[] | null>(null);
 
   React.useEffect(() => {
-    void getAuthedClient()
-      ?.conversations()
-      .then((data) => setItems(data.items))
+    void runWithAuthedClient((api) => api.conversations())
+      .then((data) => setItems(data?.items ?? []))
       .catch(() => setItems([]));
   }, []);
 

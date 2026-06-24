@@ -1,5 +1,4 @@
 import { prisma } from "@/lib/db";
-import type { Biodata } from "@/lib/types";
 
 export async function ensureCustomerPoolProfile(customerId: string) {
   const existing = await prisma.poolProfile.findFirst({
@@ -9,8 +8,6 @@ export async function ensureCustomerPoolProfile(customerId: string) {
 
   const customer = await prisma.customer.findUnique({ where: { id: customerId } });
   if (!customer) throw new Error("Customer not found.");
-
-  const biodata = JSON.parse(customer.biodata) as Biodata;
 
   return prisma.poolProfile.create({
     data: {

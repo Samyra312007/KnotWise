@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { requireApiClientSession } from "@/lib/auth/api";
 import { CLIENT_PLANS } from "@/lib/billing/client-plans";
 import { getClientEntitlements } from "@/lib/billing/client-entitlements";
-import { prisma } from "@/lib/db";
 
 export async function GET() {
   const session = await requireApiClientSession();

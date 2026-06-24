@@ -36,4 +36,12 @@ export async function getAuthedClient() {
   return createMobileClient(token);
 }
 
+export async function runWithAuthedClient<T>(
+  fn: (client: ClientApi) => Promise<T>
+): Promise<T | undefined> {
+  const client = await getAuthedClient();
+  if (!client) return undefined;
+  return fn(client);
+}
+
 export type { ClientSessionInfo };

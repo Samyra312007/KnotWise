@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Pressable, ScrollView, StyleSheet, Switch, Text, View } from "react-native";
-import { getAuthedClient } from "@/lib/api";
+import { getAuthedClient, runWithAuthedClient } from "@/lib/api";
 import { LoadingView } from "@/components/LoadingView";
 import { colors, spacing } from "@/lib/theme";
 
@@ -12,9 +12,10 @@ export default function NotificationsScreen() {
   } | null>(null);
 
   React.useEffect(() => {
-    void getAuthedClient()
-      ?.notificationPreferences()
-      .then((data) => setPrefs(data.preferences))
+    void runWithAuthedClient((api) => api.notificationPreferences())
+      .then((data) => {
+        if (data) setPrefs(data.preferences);
+      })
       .catch(() => undefined);
   }, []);
 

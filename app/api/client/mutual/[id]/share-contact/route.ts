@@ -13,9 +13,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   if (session instanceof NextResponse) return session;
 
   const { id } = await params;
-  let parsed;
   try {
-    parsed = schema.parse(await req.json());
+    schema.parse(await req.json());
   } catch {
     return NextResponse.json(
       { error: { code: "INVALID_INPUT", message: "Consent is required to share contact details." } },

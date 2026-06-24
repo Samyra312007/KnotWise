@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
-import { requireApiSession, requireApiOps, notFound, forbidden } from "@/lib/auth/api";
-import { canAccessCustomer, canWriteCustomer } from "@/lib/access/customers";
+import { requireApiSession, requireApiOps, notFound } from "@/lib/auth/api";
+import { canWriteCustomer } from "@/lib/access/customers";
 
 const submitSchema = z.object({
   entityType: z.enum(["pool_profile", "customer"]),

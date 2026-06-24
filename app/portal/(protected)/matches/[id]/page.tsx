@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { RemoteImage } from "@/components/ui/remote-image";
 import { Textarea } from "@/components/ui/textarea";
 import type { IntroReveal } from "@/lib/matching/reveal";
 
@@ -149,7 +150,7 @@ export default function PortalMatchDetailPage() {
 
       <div className="mt-8 flex gap-6 items-start">
         {reveal.photoUrl ? (
-          <img src={reveal.photoUrl} alt="" className="size-32 object-cover border border-ink/12 shrink-0" />
+          <RemoteImage src={reveal.photoUrl} alt="" width={128} height={128} className="size-32 object-cover border border-ink/12 shrink-0" />
         ) : null}
         <div>
           <h1 className="font-display text-display-m text-ink">

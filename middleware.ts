@@ -4,7 +4,7 @@ import {
   checkRateLimitSync,
   clientIpFromHeaders,
   rateLimitKeyForRequest,
-} from "@/lib/scale/rate-limit";
+} from "@/lib/scale/rate-limit-memory";
 import { newRequestId } from "@/lib/scale/logger";
 
 const PUBLIC_PATHS = [

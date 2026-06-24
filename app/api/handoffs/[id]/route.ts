@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
-import { requireApiSession, notFound, forbidden } from "@/lib/auth/api";
+import { requireApiSession, notFound } from "@/lib/auth/api";
 import { logAuditEvent } from "@/lib/audit";
 
 const schema = z.object({ action: z.enum(["accept", "decline"]) });

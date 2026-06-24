@@ -2,7 +2,7 @@ import * as React from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { Link } from "expo-router";
 import { useAuth } from "@/lib/auth";
-import { getAuthedClient } from "@/lib/api";
+import { getAuthedClient, runWithAuthedClient } from "@/lib/api";
 import type { ClientHome } from "@knotwise/api-client";
 import { LoadingView } from "@/components/LoadingView";
 import { colors, spacing } from "@/lib/theme";
@@ -12,9 +12,10 @@ export default function HomeScreen() {
   const [home, setHome] = React.useState<ClientHome | null>(null);
 
   React.useEffect(() => {
-    void getAuthedClient()
-      ?.home()
-      .then(setHome)
+    void runWithAuthedClient((api) => api.home())
+      .then((data) => {
+        if (data) setHome(data);
+      })
       .catch(() => undefined);
   }, []);
 

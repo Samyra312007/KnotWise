@@ -7,7 +7,7 @@ const MIN_LABELS = 50;
 export async function applyMlRerank(
   orgId: string,
   ranked: RankedMatch[],
-  client: Biodata
+  _client: Biodata
 ): Promise<RankedMatch[]> {
   const labeled = await prisma.matchSuggestion.count({
     where: {

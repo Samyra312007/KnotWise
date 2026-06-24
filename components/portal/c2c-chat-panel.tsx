@@ -5,6 +5,7 @@ import Link from "next/link";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { RemoteImage } from "@/components/ui/remote-image";
 import { Textarea } from "@/components/ui/textarea";
 import { useC2cRealtime } from "@/lib/hooks/use-c2c-realtime";
 import { useRealtimeConfig } from "@/lib/hooks/use-realtime-config";
@@ -169,7 +170,7 @@ export function C2cChatPanel({ conversationId }: { conversationId: string }) {
       <div className="mt-6 flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           {meta.counterpart.photoUrl ? (
-            <img src={meta.counterpart.photoUrl} alt="" className="size-10 object-cover border border-ink/12" />
+            <RemoteImage src={meta.counterpart.photoUrl} alt="" width={40} height={40} className="size-10 object-cover border border-ink/12" />
           ) : null}
           <h1 className="font-display-tight text-[22px] text-ink">
             {meta.counterpart.firstName} {meta.counterpart.lastName}

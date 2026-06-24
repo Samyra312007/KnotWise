@@ -1,6 +1,5 @@
 import { requireDelegateSession } from "@/lib/auth/session";
 import Link from "next/link";
-import DelegateDashboard from "@/components/portal/delegate-dashboard";
 
 export default async function DelegateProtectedLayout({ children }: { children: React.ReactNode }) {
   await requireDelegateSession();

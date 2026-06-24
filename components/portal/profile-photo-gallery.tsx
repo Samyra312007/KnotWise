@@ -4,6 +4,7 @@ import * as React from "react";
 import { toast } from "sonner";
 import { UploadButton } from "@/lib/uploadthing";
 import { Button } from "@/components/ui/button";
+import { RemoteImage } from "@/components/ui/remote-image";
 import { MAX_PROFILE_PHOTOS } from "@/lib/profile/fields";
 
 type Photo = { id: string; url: string; createdAt: string };
@@ -70,7 +71,7 @@ export function ProfilePhotoGallery({
           <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-mute mb-2">
             Profile photo {pendingPhotoUrl ? "(pending approval)" : ""}
           </p>
-          <img src={displayPrimary} alt="Profile" className="size-32 object-cover border border-ink/12" />
+          <RemoteImage src={displayPrimary} alt="Profile" width={128} height={128} className="size-32 object-cover border border-ink/12" />
         </div>
       ) : null}
 
@@ -86,7 +87,7 @@ export function ProfilePhotoGallery({
               const isPrimary = primaryUrl === p.url;
               return (
                 <li key={p.id} className="relative border border-ink/12 p-2">
-                  <img src={p.url} alt="" className="aspect-square w-full object-cover" />
+                  <RemoteImage src={p.url} alt="" width={200} height={200} className="aspect-square w-full object-cover" />
                   <div className="mt-2 flex flex-col gap-1">
                     {isPrimary ? (
                       <span className="font-mono text-[9px] uppercase text-vermilion">Primary</span>

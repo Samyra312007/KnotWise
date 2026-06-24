@@ -1,7 +1,7 @@
 import * as React from "react";
 import { FlatList, Image, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import type { DiscoverItem } from "@knotwise/api-client";
-import { getAuthedClient } from "@/lib/api";
+import { getAuthedClient, runWithAuthedClient } from "@/lib/api";
 import { LoadingView } from "@/components/LoadingView";
 import { colors, spacing } from "@/lib/theme";
 
@@ -12,9 +12,8 @@ export default function DiscoverScreen() {
   const [message, setMessage] = React.useState("");
 
   const load = React.useCallback(() => {
-    return getAuthedClient()
-      ?.discover({ q: q.trim() || undefined })
-      .then((data) => setItems(data.items))
+    return runWithAuthedClient((api) => api.discover({ q: q.trim() || undefined }))
+      .then((data) => setItems(data?.items ?? []))
       .catch(() => setItems([]));
   }, [q]);
 
@@ -95,7 +94,6 @@ export default function DiscoverScreen() {
             </View>
           )}
         />
-      </View>
     </View>
   );
 }
