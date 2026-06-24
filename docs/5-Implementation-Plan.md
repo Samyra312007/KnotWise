@@ -267,7 +267,7 @@ flowchart LR
 
 ---
 
-### P11 — Payments India | Spec
+### P11 — Payments India | **Shipped**
 
 | | |
 |---|---|
@@ -275,7 +275,19 @@ flowchart LR
 | **Depends on** | P2 |
 | **Effort** | ~2 weeks |
 
-**Checklist:** See [`16-Payments-Billing.md`](16-Payments-Billing.md).
+**Checklist**
+
+- [x] Extended `ClientBilling` with Razorpay fields + GSTIN
+- [x] Plus / Premium tiers with feature gates ([doc 16](16-Payments-Billing.md))
+- [x] `POST /api/client/billing/checkout` + dry-run UPI sandbox
+- [x] `/api/webhooks/razorpay` with idempotent event processing
+- [x] GST invoice records on `ClientBillingInvoice`
+- [x] Discovery gated to Premium; intro requests for Plus/Premium
+- [x] Priority verification queue for paid plans
+- [x] `/portal/billing` + mobile premium screen
+- [x] `/signup/bureau` self-serve with 14-day trial + optional Stripe checkout
+
+**Done when:** Client upgrades via Razorpay (or dry-run); webhooks update entitlements; bureau can self-register.
 
 ---
 

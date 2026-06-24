@@ -36,7 +36,8 @@
 | Consumer P8 | Mobile app v1 | PRD §P8, doc 14 | Shipped |
 | Consumer P9 | Discovery feed | PRD §P9, ADR 001/005 | Shipped |
 | Consumer P10 | Family delegates | PRD §P10, ADR 007 | Shipped |
-| Consumer P11–P16 | Real dating/matrimonial product | PRD §P11–P16, docs 8–17 | Spec only |
+| Consumer P11 | Payments India | PRD §P11, doc 16, ADR 004 | Shipped |
+| Consumer P12–P16 | Real dating/matrimonial product | PRD §P12–P16, docs 8–17 | Spec only |
 
 ---
 
@@ -56,7 +57,8 @@
 | P8 mobile app v1 | Shipped (`apps/mobile/`, client bearer auth, Expo Router) |
 | P9 discovery feed | Shipped (`/portal/discover`, `lib/discovery/*`) |
 | P10 family delegates | Shipped (`/portal/family`, `/portal/delegate`, `lib/family/*`) |
-| P11–P16 consumer features | Spec only (this library) |
+| P11 payments India | Shipped (`/portal/billing`, Razorpay, `/signup/bureau`) |
+| P12–P16 consumer features | Spec only (this library) |
 
 ---
 
@@ -149,10 +151,10 @@ Every remaining consumer-dating gap maps to a phase and primary doc.
 
 | Gap | Phase | Primary doc | Status |
 |-----|-------|-------------|--------|
-| Client subscription / premium tiers | P11 | doc 16, ADR 004 | Spec |
-| UPI / India-local payments (Razorpay) | P11 | doc 16 | Spec |
-| Self-serve bureau signup (multi-tenant SaaS) | P11 | doc 16, PRD §P11 | Spec |
-| Invoicing, refunds, tax handling | P11 | doc 16 | Spec |
+| Client subscription / premium tiers | P11 | doc 16, ADR 004 | Shipped |
+| UPI / India-local payments (Razorpay) | P11 | doc 16 | Shipped |
+| Self-serve bureau signup (multi-tenant SaaS) | P11 | doc 16, PRD §P11 | Shipped |
+| Invoicing, refunds, tax handling | P11 | doc 16 | Shipped |
 
 ### Mobile & notifications
 

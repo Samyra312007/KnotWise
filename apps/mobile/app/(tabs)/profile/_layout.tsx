@@ -14,6 +14,7 @@ export default function ProfileLayout() {
       <Stack.Screen name="notifications" options={{ title: "Notifications" }} />
       <Stack.Screen name="messages" options={{ title: "Matchmaker" }} />
       <Stack.Screen name="family" options={{ title: "Family delegates" }} />
+      <Stack.Screen name="billing" options={{ title: "Premium" }} />
     </Stack>
   );
 }

@@ -58,6 +58,11 @@ export default function ProfileScreen() {
             <Text style={styles.linkText}>Family delegates</Text>
           </Pressable>
         </Link>
+        <Link href="/(tabs)/profile/billing" asChild>
+          <Pressable style={styles.link}>
+            <Text style={styles.linkText}>Premium plans</Text>
+          </Pressable>
+        </Link>
         <Pressable style={styles.logout} onPress={() => void signOut()}>
           <Text style={styles.logoutText}>Log out</Text>
         </Pressable>

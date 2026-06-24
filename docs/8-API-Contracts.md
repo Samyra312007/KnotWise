@@ -331,13 +331,44 @@ Limited-reveal intros for the linked client (contact hidden until mutual + conta
 
 ---
 
-## 8.13 Webhooks (shipped + planned)
+## 8.13 P11 — Payments India (shipped)
+
+### `GET /api/client/billing`
+
+Returns current plan, usage, and available tiers (Included / Plus ₹499 / Premium ₹999).
+
+### `POST /api/client/billing/checkout`
+
+**Body:** `{ "plan": "plus" | "premium", "idempotencyKey": string, "gstin"?: string }`  
+**Response:** `{ "checkoutUrl", "subscriptionId", "dryRun"?: true }`  
+With `RAZORPAY_DRY_RUN=true` (default), checkout activates plan immediately for local dev.
+
+### `GET /api/client/billing/invoices`
+
+GST invoice history.
+
+### `POST /api/client/billing/cancel`
+
+Downgrades to Included.
+
+### `POST /api/client/intro-requests`
+
+**Body:** `{ "note"?: string }` — Plus/Premium only; monthly limit enforced.
+
+### `POST /api/signup/bureau`
+
+**Body:** `{ orgName, slug?, ownerName, username, email, password }`  
+Creates org + owner + 14-day trialing subscription. Returns optional `stripeCheckoutUrl`.
+
+---
+
+## 8.14 Webhooks (shipped)
 
 | Path | Provider |
 |------|----------|
 | `/api/webhooks/resend` | Email events |
 | `/api/webhooks/stripe` | Bureau billing |
-| `/api/webhooks/razorpay` | Client premium P11 |
+| `/api/webhooks/razorpay` | Client premium P11 (shipped) |
 
 ---
 

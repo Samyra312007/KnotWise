@@ -220,7 +220,7 @@ Each phase: **Problem → Stories → Goals / Non-goals → Acceptance → Metri
 **Goals:** Razorpay client premium; bureau self-serve signup; GST invoices.  
 **Acceptance:** UPI checkout; webhook entitlement; feature gates.
 
-**Status:** Spec — [ADR 004](adr/004-payments-primary.md)
+**Status:** Shipped — Razorpay client premium, bureau self-serve signup, GST invoices, plan feature gates
 
 ---
 

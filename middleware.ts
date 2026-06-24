@@ -3,16 +3,25 @@ import type { NextRequest } from "next/server";
 
 const PUBLIC_PATHS = [
   "/login",
+  "/signup/bureau",
   "/portal/login",
   "/portal/signup",
   "/portal/verify",
+  "/portal/delegate/login",
+  "/portal/delegate/verify",
+  "/portal/delegate/accept",
   "/api/auth/login",
   "/api/auth/logout",
+  "/api/signup/bureau",
   "/api/client/auth/magic-link",
   "/api/client/auth/signup",
   "/api/client/auth/logout",
+  "/api/family/delegate/auth/magic-link",
+  "/api/family/delegate/auth/verify",
+  "/api/family/delegates/accept",
   "/api/webhooks/resend",
   "/api/webhooks/stripe",
+  "/api/webhooks/razorpay",
   "/api/inngest",
   "/api/uploadthing",
 ];
@@ -42,12 +51,20 @@ export function middleware(req: NextRequest) {
   if (pathname.startsWith("/portal")) {
     if (
       !hasClientSession &&
+      !req.cookies.has("knotwise_delegate_session") &&
       pathname !== "/portal/login" &&
       pathname !== "/portal/signup" &&
-      pathname !== "/portal/verify"
+      pathname !== "/portal/verify" &&
+      !pathname.startsWith("/portal/delegate/login") &&
+      !pathname.startsWith("/portal/delegate/verify") &&
+      !pathname.startsWith("/portal/delegate/accept")
     ) {
       return NextResponse.redirect(new URL("/portal/login", req.url));
     }
+    return NextResponse.next();
+  }
+
+  if (pathname.startsWith("/signup")) {
     return NextResponse.next();
   }
 

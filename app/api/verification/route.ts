@@ -17,7 +17,7 @@ export async function GET(req: Request) {
 
   const items = await prisma.verificationCase.findMany({
     where: { orgId: session.orgId, status },
-    orderBy: { submittedAt: "desc" },
+    orderBy: [{ priority: "desc" }, { submittedAt: "desc" }],
     take: 100,
   });
 

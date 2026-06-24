@@ -54,6 +54,12 @@ export async function POST(req: Request, ctx: { params: Promise<{ poolProfileId:
         { status: 403 }
       );
     }
+    if (err.message === "PREMIUM_REQUIRED") {
+      return NextResponse.json(
+        { error: { code: "PREMIUM_REQUIRED", message: "Discovery requires a Premium plan." } },
+        { status: 403 }
+      );
+    }
     if (err.message === "NOT_FOUND") {
       return NextResponse.json({ error: { code: "NOT_FOUND", message: "Profile not found." } }, { status: 404 });
     }

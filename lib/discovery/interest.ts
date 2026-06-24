@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db";
 import { logAuditEvent } from "@/lib/audit";
 import { createNotification } from "@/lib/notifications";
 import { getPrimaryMatchmakerId } from "@/lib/access/customers";
+import { clientHasDiscoveryAccess, getClientEntitlements } from "@/lib/billing/client-entitlements";
 import type { Biodata } from "@/lib/types";
 
 export async function expressDiscoveryInterest(input: {
@@ -14,6 +15,11 @@ export async function expressDiscoveryInterest(input: {
   const config = await prisma.orgMatchingConfig.findUnique({ where: { orgId: input.orgId } });
   if (config && !config.discoveryEnabled) {
     throw new Error("DISABLED");
+  }
+
+  const entitlements = await getClientEntitlements(input.customerId);
+  if (!clientHasDiscoveryAccess(entitlements.plan, entitlements.status)) {
+    throw new Error("PREMIUM_REQUIRED");
   }
 
   const dailyLimit = config?.discoveryDailyLimit ?? 20;

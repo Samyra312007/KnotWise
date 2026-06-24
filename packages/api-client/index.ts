@@ -347,6 +347,42 @@ export function createClientApi(config: ApiConfig) {
           body: JSON.stringify({ delegateApproverOptIn }),
         }
       ),
+
+    billing: () =>
+      request<{
+        plan: string;
+        status: string;
+        currentPeriodEnd: string | null;
+        introRequestsRemaining: number;
+        introRequestsLimit: number;
+        plans: Array<{
+          id: string;
+          label: string;
+          priceInr: number;
+          discoveryAccess: boolean;
+          extraIntroRequestsPerMonth: number;
+          priorityVerification: boolean;
+          profileBoost: boolean;
+        }>;
+      }>(config, "/api/client/billing"),
+
+    billingCheckout: (plan: "plus" | "premium", idempotencyKey: string, gstin?: string) =>
+      request<{ ok: boolean; checkoutUrl?: string; dryRun?: boolean }>(config, "/api/client/billing/checkout", {
+        method: "POST",
+        body: JSON.stringify({ plan, idempotencyKey, gstin }),
+      }),
+
+    billingInvoices: () =>
+      request<{ items: Array<{ id: string; amountInr: number; gstInr: number; status: string; issuedAt: string }> }>(
+        config,
+        "/api/client/billing/invoices"
+      ),
+
+    requestIntro: (note?: string) =>
+      request<{ ok: boolean; request: { id: string; status: string } }>(config, "/api/client/intro-requests", {
+        method: "POST",
+        body: JSON.stringify({ note }),
+      }),
   };
 }
 

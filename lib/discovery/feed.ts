@@ -4,6 +4,11 @@ import { buildIntroReveal } from "@/lib/matching/reveal";
 import { parseCustomerBiodata } from "@/lib/onboarding/status";
 import type { Biodata } from "@/lib/types";
 import {
+  clientHasDiscoveryAccess,
+  clientProfileBoost,
+  getClientEntitlements,
+} from "@/lib/billing/client-entitlements";
+import {
   passesClientHardFilters,
   passesDiscoveryFilters,
   verifiedBoostScore,
@@ -24,6 +29,13 @@ export async function getDiscoveryFeed(input: {
   if (config && !config.discoveryEnabled) {
     throw new Error("DISABLED");
   }
+
+  const entitlements = await getClientEntitlements(input.customerId);
+  if (!clientHasDiscoveryAccess(entitlements.plan, entitlements.status)) {
+    throw new Error("PREMIUM_REQUIRED");
+  }
+
+  const boost = clientProfileBoost(entitlements.plan, entitlements.status);
 
   const customer = await prisma.customer.findUnique({ where: { id: input.customerId } });
   if (!customer) throw new Error("NOT_FOUND");
@@ -95,7 +107,7 @@ export async function getDiscoveryFeed(input: {
       if (!match) return null;
       return {
         profile: entry,
-        score: verifiedBoostScore(match.score, entry.verifiedAt),
+        score: verifiedBoostScore(match.score, entry.verifiedAt) + boost,
         bucket: match.bucket,
       };
     })

@@ -4,6 +4,7 @@ import { requireApiClientSession } from "@/lib/auth/api";
 import { prisma } from "@/lib/db";
 import { getCustomerTrustStatus } from "@/lib/trust/tier-sync";
 import { refreshCustomerVerificationTier } from "@/lib/trust/tier-sync";
+import { clientHasPriorityVerification, getClientEntitlements } from "@/lib/billing/client-entitlements";
 
 export async function GET() {
   const session = await requireApiClientSession();
@@ -51,14 +52,25 @@ export async function POST(req: Request) {
   });
 
   if (!verificationCase) {
+    const ent = await getClientEntitlements(session.customerId);
+    const priority = clientHasPriorityVerification(ent.plan, ent.status) ? 1 : 0;
     verificationCase = await prisma.verificationCase.create({
       data: {
         orgId: customer.orgId,
         entityType: "customer",
         entityId: session.customerId,
+        priority,
         checklist: JSON.stringify({ phone: false, email: true, idDoc: false, photo: false }),
       },
     });
+  } else {
+    const ent = await getClientEntitlements(session.customerId);
+    if (clientHasPriorityVerification(ent.plan, ent.status) && verificationCase.priority < 1) {
+      await prisma.verificationCase.update({
+        where: { id: verificationCase.id },
+        data: { priority: 1 },
+      });
+    }
   }
 
   await prisma.verificationDocument.create({

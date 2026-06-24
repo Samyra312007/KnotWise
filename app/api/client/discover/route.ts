@@ -58,6 +58,12 @@ export async function GET(req: Request) {
         { status: 403 }
       );
     }
+    if (err instanceof Error && err.message === "PREMIUM_REQUIRED") {
+      return NextResponse.json(
+        { error: { code: "PREMIUM_REQUIRED", message: "Discovery requires a Premium plan." } },
+        { status: 403 }
+      );
+    }
     throw err;
   }
 }

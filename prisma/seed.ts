@@ -260,6 +260,10 @@ async function main() {
   await prisma.notification.deleteMany();
   await prisma.handoff.deleteMany();
   await prisma.magicLinkToken.deleteMany();
+  await prisma.clientIntroRequest.deleteMany();
+  await prisma.clientBillingInvoice.deleteMany();
+  await prisma.billingCheckoutSession.deleteMany();
+  await prisma.billingWebhookEvent.deleteMany();
   await prisma.clientAccount.deleteMany();
   await prisma.clientBilling.deleteMany();
   await prisma.subscription.deleteMany();

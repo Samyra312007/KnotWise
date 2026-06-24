@@ -2,7 +2,7 @@
 
 **Project:** KnotWise  
 **Version:** 2.0  
-**Status:** Approved  
+**Status:** Shipped (P11)  
 **Phase:** P11
 
 ---
@@ -12,7 +12,7 @@
 | Line | Provider | Customer |
 |------|----------|----------|
 | Bureau SaaS | Stripe (shipped) | Organization |
-| Client premium | Razorpay (P11) | End client |
+| Client premium | Razorpay (shipped) | End client |
 
 Per [ADR 004](adr/004-payments-primary.md).
 
@@ -27,7 +27,7 @@ Per [ADR 004](adr/004-payments-primary.md).
 
 ---
 
-## 16.3 Client premium tiers (planned)
+## 16.3 Client premium tiers (shipped)
 
 | Tier | Price (INR/mo) | Features |
 |------|----------------|----------|
@@ -35,44 +35,32 @@ Per [ADR 004](adr/004-payments-primary.md).
 | Plus | 499 | Priority verification, 2 extra intro requests/mo |
 | Premium | 999 | Discovery access P9, profile boost |
 
-Entitlement stored on `ClientBilling.plan`.
+Entitlement stored on `ClientBilling.plan`. Gates enforced in `lib/billing/client-entitlements.ts`.
 
 ---
 
-## 16.4 Razorpay integration
+## 16.4 Razorpay integration (shipped)
 
-```mermaid
-sequenceDiagram
-    participant C as Client
-    participant API as KnotWise
-    participant R as Razorpay
-
-    C->>API: POST /api/client/billing/checkout
-    API->>R: Create subscription
-    R-->>C: UPI/card checkout
-    R->>API: webhook payment.captured
-    API->>API: Update ClientBilling
-```
-
-- Webhook: `/api/webhooks/razorpay`
-- Idempotency keys on checkout
-- GST invoice via Razorpay Invoices
+- Checkout: `POST /api/client/billing/checkout`
+- Webhook: `/api/webhooks/razorpay` (idempotent via `BillingWebhookEvent`)
+- Dry run: `RAZORPAY_DRY_RUN=true` (default) simulates UPI success locally
+- GST invoice records on `ClientBillingInvoice` (18% GST)
+- Dunning: `payment.failed` → past_due → downgrade after 3 days
 
 ---
 
-## 16.5 Self-serve bureau signup (P11)
+## 16.5 Self-serve bureau signup (shipped)
 
-- `/signup/bureau` — org name, slug, owner email
-- Stripe trial 14 days
-- Auto-seed empty org + owner membership
+- `/signup/bureau` — org name, slug, owner credentials
+- 14-day trialing `Subscription` in database
+- Optional Stripe Checkout with trial when `STRIPE_*` configured
 
 ---
 
 ## 16.6 Refunds & dunning
 
-- Refund policy: 7-day pro-rata client premium
-- Failed payment: 3 retry days → downgrade to Included
-- Email notifications via Resend
+- Client cancel: `POST /api/client/billing/cancel` → Included
+- Failed payment webhook triggers grace period then downgrade
 
 ---
 
@@ -86,9 +74,9 @@ In-app crypto payments.
 
 ## Acceptance criteria
 
-- [ ] UPI payment completes in sandbox
-- [ ] Webhook updates entitlements within 60s
-- [ ] Feature gates enforce plan limits
+- [x] UPI payment completes in sandbox (dry-run + Razorpay live when configured)
+- [x] Webhook updates entitlements within 60s
+- [x] Feature gates enforce plan limits
 
 ## Open questions
 

@@ -100,6 +100,9 @@ model Customer {
   reportsFiled          Report[]               @relation("ReportReporter")
   discoveryInterests    DiscoveryInterest[]
   familyDelegates       FamilyDelegate[]
+  clientIntroRequests   ClientIntroRequest[]
+  billingCheckoutSessions BillingCheckoutSession[]
+  billingInvoices       ClientBillingInvoice[]
 
   @@index([orgId])
   @@index([stage])
@@ -290,11 +293,21 @@ model Subscription {
 }
 
 model ClientBilling {
-  id               String @id @default(cuid())
-  customerId       String @unique
-  stripeCustomerId String?
-  plan             String @default("included")
-  status           String @default("active")
+  id                     String    @id @default(cuid())
+  customerId             String    @unique
+  provider               String    @default("none")
+  stripeCustomerId       String?
+  razorpayCustomerId     String?
+  razorpaySubscriptionId String?   @unique
+  plan                   String    @default("included")
+  status                 String    @default("active")
+  currentPeriodEnd       DateTime?
+  gstin                  String?
+  introRequestsPeriod    String?
+  introRequestsUsed      Int       @default(0)
+  pastDueSince           DateTime?
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
 
   customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
 }
@@ -372,6 +385,7 @@ model VerificationCase {
   entityType  String
   entityId    String
   status      String    @default("pending")
+  priority    Int       @default(0)
   checklist   String    @default("{}")
   reviewerId  String?
   notes       String?
@@ -660,4 +674,61 @@ model DelegateAuthToken {
   delegate FamilyDelegate @relation(fields: [delegateId], references: [id], onDelete: Cascade)
 
   @@index([delegateId])
+}
+
+model BillingCheckoutSession {
+  id              String    @id @default(cuid())
+  customerId      String
+  idempotencyKey  String    @unique
+  plan            String
+  amountInr       Int
+  razorpayOrderId String?   @unique
+  razorpaySubId   String?
+  status          String    @default("pending")
+  createdAt       DateTime  @default(now())
+  completedAt     DateTime?
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+}
+
+model BillingWebhookEvent {
+  id          String   @id @default(cuid())
+  provider    String
+  eventId     String
+  eventType   String
+  payload     String?
+  processedAt DateTime @default(now())
+
+  @@unique([provider, eventId])
+}
+
+model ClientBillingInvoice {
+  id         String   @id @default(cuid())
+  customerId String
+  provider   String
+  externalId String
+  amountInr  Int
+  gstInr     Int      @default(0)
+  status     String
+  invoiceUrl String?
+  issuedAt   DateTime
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, externalId])
+  @@index([customerId])
+}
+
+model ClientIntroRequest {
+  id         String   @id @default(cuid())
+  customerId String
+  note       String?
+  status     String   @default("pending")
+  createdAt  DateTime @default(now())
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId, createdAt])
 }
