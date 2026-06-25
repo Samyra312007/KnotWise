@@ -3,19 +3,13 @@ import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { requireApiClientSession } from "@/lib/auth/api";
 import { submitIntroFeedback } from "@/lib/matching/mutual";
+import { normalizeIntroDecision } from "@/lib/matching/feedback";
 
 const schema = z.object({
   decision: z.enum(["accept", "decline"]).optional(),
   status: z.enum(["accepted", "declined"]).optional(),
   reason: z.string().max(500).optional(),
 });
-
-function normalizeDecision(body: z.infer<typeof schema>): "accept" | "decline" | null {
-  if (body.decision) return body.decision;
-  if (body.status === "accepted") return "accept";
-  if (body.status === "declined") return "decline";
-  return null;
-}
 
 async function handleFeedback(req: Request, id: string) {
   const session = await requireApiClientSession();
@@ -28,7 +22,7 @@ async function handleFeedback(req: Request, id: string) {
     return NextResponse.json({ error: { code: "INVALID_INPUT", message: "Invalid feedback." } }, { status: 400 });
   }
 
-  const decision = normalizeDecision(parsed);
+  const decision = normalizeIntroDecision(parsed);
   if (!decision) {
     return NextResponse.json({ error: { code: "INVALID_INPUT", message: "Invalid feedback." } }, { status: 400 });
   }

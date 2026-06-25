@@ -10,7 +10,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Knot } from "@/components/ui/knot";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { ScoredCandidate } from "@/lib/types";
+import { draftIntroEmailFallback } from "@/lib/ai/fallback";
+import type { Biodata, ScoredCandidate } from "@/lib/types";
 
 export interface SendMatchModalProps {
   open: boolean;
@@ -19,6 +20,12 @@ export interface SendMatchModalProps {
   customerFirstName: string;
   candidate: ScoredCandidate | null;
   onSent: (sentAt: string, candidateId: string) => void;
+}
+
+function applyFallbackDraft(customerFirstName: string, candidate: ScoredCandidate) {
+  const clientStub = { firstName: customerFirstName } as Biodata;
+  const fb = draftIntroEmailFallback(clientStub, candidate.candidate);
+  return { subject: fb.subject, body: fb.body, source: "fallback" as const };
 }
 
 export function SendMatchModal({
@@ -34,6 +41,7 @@ export function SendMatchModal({
   const [subject, setSubject] = React.useState("");
   const [body, setBody] = React.useState("");
   const [source, setSource] = React.useState<"llm" | "fallback" | null>(null);
+  const [draftFailed, setDraftFailed] = React.useState(false);
   const [submitting, setSubmitting] = React.useState(false);
   const [successAt, setSuccessAt] = React.useState<number | null>(null);
 
@@ -43,7 +51,9 @@ export function SendMatchModal({
     setSubject("");
     setBody("");
     setSource(null);
+    setDraftFailed(false);
     let alive = true;
+
     fetch("/api/ai/intro-email", {
       method: "POST",
       headers: { "content-type": "application/json" },
@@ -53,37 +63,82 @@ export function SendMatchModal({
         useExisting: candidate.alreadySent,
       }),
     })
-      .then((r) => r.json())
-      .then((d) => {
+      .then(async (r) => {
+        const d = await r.json().catch(() => null);
         if (!alive) return;
-        if (d?.subject && d?.body) {
+        if (r.ok && d?.subject && d?.body) {
           setSubject(d.subject);
           setBody(d.body);
           setSource(d.source === "existing" ? "fallback" : (d.source ?? "fallback"));
+          return;
         }
+        const fb = applyFallbackDraft(customerFirstName, candidate);
+        setSubject(fb.subject);
+        setBody(fb.body);
+        setSource(fb.source);
+        setDraftFailed(true);
+        toast.error(
+          d?.error?.message ?? "Could not draft email — a template was loaded instead."
+        );
       })
-      .catch(() => {})
-      .finally(() => alive && setLoading(false));
+      .catch(() => {
+        if (!alive) return;
+        const fb = applyFallbackDraft(customerFirstName, candidate);
+        setSubject(fb.subject);
+        setBody(fb.body);
+        setSource(fb.source);
+        setDraftFailed(true);
+        toast.error("Could not draft email — a template was loaded instead.");
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+
     return () => {
       alive = false;
     };
-  }, [open, candidate, customerId]);
+  }, [open, candidate, customerId, customerFirstName]);
+
+  async function postSend(overrideSameGotra = false): Promise<boolean> {
+    if (!candidate) return false;
+    const res = await fetch("/api/matches/send", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        customerId,
+        candidateId: candidate.candidate.id,
+        subject,
+        body,
+        overrideSameGotra: overrideSameGotra || undefined,
+      }),
+    });
+
+    if (res.status === 409) {
+      const d = await res.json().catch(() => null);
+      if (d?.error?.code === "SAME_GOTRA" && d.canOverride) {
+        const msg = d.gotraWarning ?? "Same gotra — send anyway?";
+        if (window.confirm(msg)) {
+          return postSend(true);
+        }
+        return false;
+      }
+    }
+
+    if (!res.ok) {
+      const d = await res.json().catch(() => null);
+      toast.error(d?.error?.message ?? "Could not send. Try again.");
+      return false;
+    }
+
+    return true;
+  }
 
   async function send() {
     if (!candidate || submitting) return;
     setSubmitting(true);
     try {
-      const res = await fetch("/api/matches/send", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          customerId,
-          candidateId: candidate.candidate.id,
-          subject,
-          body,
-        }),
-      });
-      if (!res.ok) throw new Error("send_failed");
+      const ok = await postSend();
+      if (!ok) return;
       setSuccessAt(Date.now());
       onSent(new Date().toISOString(), candidate.candidate.id);
       setTimeout(() => {
@@ -92,8 +147,6 @@ export function SendMatchModal({
         toast.success(`Sent to ${customerFirstName}.`);
         router.refresh();
       }, 900);
-    } catch {
-      toast.error("Could not send. Try again.");
     } finally {
       setSubmitting(false);
     }
@@ -143,7 +196,17 @@ export function SendMatchModal({
           </div>
 
           <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-mute">
-            {source === "llm" ? "Drafted by the AI" : source === "fallback" ? (candidate.alreadySent ? "Loaded from sent log" : "Written from template") : "Drafting..."}
+            {loading
+              ? "Drafting..."
+              : draftFailed
+                ? "Draft unavailable — edit below or retry"
+                : source === "llm"
+                  ? "Drafted by the AI"
+                  : source === "fallback"
+                    ? candidate.alreadySent
+                      ? "Loaded from sent log"
+                      : "Written from template"
+                    : ""}
           </div>
         </div>
 

@@ -92,9 +92,6 @@ export function LoginForm() {
                 type="text"
                 autoComplete="username"
                 autoFocus
-                placeholder={
-                  process.env.NODE_ENV === "development" ? "try: riya" : undefined
-                }
                 invalid={!!errors.username}
                 {...register("username")}
               />
@@ -128,10 +125,6 @@ export function LoginForm() {
             )}
           </div>
         </form>
-
-        <div className="mt-12 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-mute/70 anim-reveal anim-delay-4">
-          Try riya · arjun · ops &nbsp;—&nbsp; password123
-        </div>
       </div>
     </main>
   );

@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -18,11 +19,19 @@ export function HandoffPanel({ customerId }: { customerId: string }) {
   React.useEffect(() => {
     fetch("/api/collaborators")
       .then((r) => r.json())
-      .then((d) => setMembers(d.members ?? []));
+      .then((d) => setMembers(d.members ?? []))
+      .catch(() => toast.error("Could not load colleagues."));
   }, []);
 
   async function submit() {
-    if (!toId || !note.trim()) return;
+    if (!toId) {
+      toast.error("Choose a colleague.");
+      return;
+    }
+    if (!note.trim()) {
+      toast.error("Add a note for the handoff.");
+      return;
+    }
     setSubmitting(true);
     try {
       const res = await fetch(`/api/customers/${customerId}/handoff`, {
@@ -30,17 +39,22 @@ export function HandoffPanel({ customerId }: { customerId: string }) {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ toMatchmakerId: toId, note }),
       });
-      if (!res.ok) throw new Error("failed");
+      if (!res.ok) {
+        const d = await res.json().catch(() => null);
+        throw new Error(d?.error?.message ?? "failed");
+      }
       toast.success("Handoff requested.");
       setNote("");
-    } catch {
-      toast.error("Could not request handoff.");
+      setToId("");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not request handoff.");
     } finally {
       setSubmitting(false);
     }
   }
 
   const selected = members.find((m) => m.matchmakerId === toId);
+  const canSubmit = !!toId && !!note.trim() && !submitting;
 
   return (
     <div className="mt-6 p-4 border border-ink/12 bg-paper-quiet space-y-4">
@@ -49,22 +63,25 @@ export function HandoffPanel({ customerId }: { customerId: string }) {
       </div>
       <div>
         <Label>Colleague</Label>
-        <Dropdown
-          trigger={
-            <button type="button" className="mt-2 h-11 w-full text-left border border-ink/24 px-3 text-[14px]">
-              {selected?.fullName ?? "Choose colleague"}
-            </button>
-          }
-        >
-          {members.map((m) => (
-            <DropdownItem key={m.matchmakerId} onSelect={() => setToId(m.matchmakerId)}>
-              {m.fullName}
-            </DropdownItem>
-          ))}
-        </Dropdown>
+        <div className="block w-full mt-2">
+          <Dropdown
+            trigger={
+              <span className="inline-flex items-center justify-between w-full h-11 border border-ink/24 px-3 text-[14px] cursor-pointer">
+                <span>{selected?.fullName ?? "Choose colleague"}</span>
+                <ChevronDown size={14} className="text-ink-mute shrink-0" />
+              </span>
+            }
+          >
+            {members.map((m) => (
+              <DropdownItem key={m.matchmakerId} onSelect={() => setToId(m.matchmakerId)}>
+                {m.fullName}
+              </DropdownItem>
+            ))}
+          </Dropdown>
+        </div>
       </div>
       <div>
-        <Label htmlFor="handoff-note">Note</Label>
+        <Label htmlFor="handoff-note">Note (required)</Label>
         <Textarea
           id="handoff-note"
           value={note}
@@ -72,7 +89,13 @@ export function HandoffPanel({ customerId }: { customerId: string }) {
           className="mt-2 min-h-[80px]"
         />
       </div>
-      <Button variant="quiet" size="compact" onClick={submit} loading={submitting}>
+      <Button
+        variant="quiet"
+        size="compact"
+        onClick={submit}
+        loading={submitting}
+        disabled={!canSubmit}
+      >
         Request handoff
       </Button>
     </div>

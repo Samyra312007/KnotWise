@@ -68,7 +68,8 @@ Each matchmaker has 8 assigned customers. One of Riya's clients has a portal acc
 | `npm run docker:up` | Start Postgres via Docker Compose |
 | `npm run db:seed` | Seed org, matchmakers, customers, pool |
 | `npm run ml:tune -- <orgId>` | Offline weight tuning |
-| `npm test` | Matching engine tests (15) |
+| `npm test` | Unit + integration tests (Vitest) |
+| `npm run test:e2e` | Playwright portal mutual → chat |
 
 ## Environment variables
 

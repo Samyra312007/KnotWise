@@ -35,13 +35,24 @@ export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }
     });
     const items: ScoredCandidate[] = rows.map((row) => {
       const biodata = JSON.parse(row.poolProfile.biodata) as Biodata;
+      const lastEmail = row.emails[0] ?? null;
+      const alreadySent =
+        row.status === "sent" || row.status === "viewed" || !!lastEmail;
       return {
         candidate: { id: row.poolProfileId, ...biodata },
         score: row.score,
         bucket: row.bucket as ScoredCandidate["bucket"],
         explanation: row.explanation,
         breakdown: JSON.parse(row.breakdown) as Record<string, number>,
-        alreadySent: false,
+        alreadySent,
+        sentAt: lastEmail?.sentAt ? new Date(lastEmail.sentAt).toISOString() : undefined,
+        lastEmail: lastEmail
+          ? {
+              subject: lastEmail.subject,
+              body: lastEmail.body,
+              deliveryStatus: lastEmail.deliveryStatus,
+            }
+          : undefined,
         modelAdjusted: row.modelAdjusted,
       };
     });

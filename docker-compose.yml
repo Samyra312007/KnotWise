@@ -7,7 +7,7 @@ services:
       POSTGRES_PASSWORD: knotwise
       POSTGRES_DB: knotwise
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - knotwise_pg:/var/lib/postgresql/data
 

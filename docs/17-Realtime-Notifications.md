@@ -37,7 +37,6 @@ sequenceDiagram
 | Channel | Guarantee |
 |---------|-----------|
 | C2C chat | At-least-once; client dedupe by message id |
-| Push | Best-effort; retry 3x |
 | Email | At-least-once via Inngest |
 | SMS OTP | At-least-once; user can resend |
 
@@ -45,16 +44,14 @@ Read receipts: `readAt` on `C2cMessage` when thread opened.
 
 ---
 
-## 17.3 Push notifications (P7)
+## 17.3 Client notifications (web)
 
-| Trigger | Payload |
-|---------|---------|
-| New intro | `{ type: "intro", suggestionId }` |
-| Mutual match | `{ type: "mutual", mutualMatchId }` |
-| C2C message | `{ type: "message", conversationId, preview }` |
-| Date reminder | `{ type: "reminder", eventId }` |
+Push notifications (Expo) were removed with the mobile app. Clients receive:
 
-Preferences: `NotificationPreference` per client.
+- **Email** — intro sends, schedule proposals/confirmations/reminders (Resend + `EMAIL_DRY_RUN`)
+- **In-app** — matchmaker thread messages, ops notifications
+
+Portal URL helpers live in `lib/portal/url.ts` for email links.
 
 ---
 
@@ -76,7 +73,7 @@ Preferences: `NotificationPreference` per client.
 
 ## 17.6 Deep links
 
-Email/SMS links use `CLIENT_PORTAL_URL` or app universal links (doc 14).
+Email/SMS links use `CLIENT_PORTAL_URL` (see `lib/portal/url.ts`).
 
 Magic link TTL: signup 24h; login 15min.
 
@@ -84,15 +81,13 @@ Magic link TTL: signup 24h; login 15min.
 
 ## Scope
 
-Realtime C2C, push, SMS/email delivery, bounce handling.
+Realtime C2C, SMS/email delivery, bounce handling.
 
 ## Acceptance criteria
 
 - [x] C2C realtime delivery via Pusher or SSE (P6)
 - [x] Matchmaker thread SSE + optional Pusher (P6)
 - [x] C2C p95 delivery <2s at 1k concurrent (load test P16)
-- [x] Push delivery pipeline with preferences and dry-run (P7)
-- [ ] Push received on device within 10s (device QA P8)
 - [x] Bounce suppresses future sends (P16)
 
 ## Open questions

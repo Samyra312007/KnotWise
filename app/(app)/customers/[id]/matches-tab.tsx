@@ -106,7 +106,7 @@ export function MatchesTab({
       if (!res.ok) throw new Error("failed");
       toast.success("Shortlist saved.");
       setSelected(new Set());
-      if (bucket === "shortlisted") fetchMatches("shortlisted");
+      setBucket("shortlisted");
     } catch {
       toast.error("Could not shortlist.");
     } finally {

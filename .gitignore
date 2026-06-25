@@ -13,3 +13,6 @@ data/dummy-profiles.json
 .agents
 .cursor
 .vscode
+e2e/.e2e-state.json
+test-results
+playwright-report

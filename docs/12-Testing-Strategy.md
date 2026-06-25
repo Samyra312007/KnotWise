@@ -11,17 +11,33 @@
 | Layer | Tool | Scope |
 |-------|------|-------|
 | Unit | Vitest | Matching engine, completeness, pure lib |
-| Integration | Vitest + test DB | API routes with Prisma |
-| E2E | Playwright | Critical journeys |
-| Mobile | Detox (P8) | Login, intros, chat |
-| Load | k6 (P16) | Chat, discover |
+| Integration | Vitest + PostgreSQL | API route handlers with Prisma |
+| E2E | Playwright | Critical portal journeys |
+| Load | k6 (P16) | Health, OpenAPI |
 
 ---
 
-## 12.2 Current coverage (shipped)
+## 12.2 Current coverage
 
-- `tests/matching.test.ts` — 15 rule engine tests
-- `tests/profile-completeness.test.ts` — P1 scoring
+**Unit** (`tests/*.test.ts`) — 100+ tests across matching, trust, scheduling, compliance, scale, token hashing, intro feedback normalization.
+
+**Integration** (`tests/integration/*.integration.test.ts`) — runs when `DATABASE_URL` is reachable; skipped locally if Postgres is down:
+
+- Client auth (magic link + verify + `/api/client/me`)
+- Mutual intro (both accept → `MutualMatch`)
+- C2C chat (send message + non-participant 404)
+- IDOR (client cannot accept another client's intro)
+- Billing (Razorpay dry-run checkout)
+- Smoke: matchmaker bureau + client portal API paths
+
+**E2E** (`e2e/portal-mutual-chat.spec.ts`) — two browser contexts, verify → accept → chat link.
+
+Run:
+
+```bash
+npm test
+npm run test:e2e   # requires DATABASE_URL + dev server (started automatically)
+```
 
 ---
 
@@ -44,32 +60,30 @@
 ## 12.4 Fixtures
 
 - `tests/fixtures.ts` — sample biodata pairs
-- Seed script for E2E: two clients + one intro
+- `tests/integration/helpers/fixtures.ts` — isolated org + client pairs for integration tests
+- `e2e/global-setup.ts` — Playwright seed data + magic-link tokens
 
 ---
 
 ## 12.5 CI gates
 
-- PR: typecheck + unit + integration
-- Main: + E2E smoke on staging
+- PR: typecheck + unit + integration (Postgres service)
+- Optional: Playwright E2E when DB available
 - Release: load test report attached
 
 ---
 
 ## 12.6 Security tests
 
-- OWASP ZAP on staging (P16)
-- IDOR tests on all `/api/client/*` routes
+- IDOR integration tests on `/api/client/me` and intro feedback
+- OWASP ZAP on staging (P16) — manual
 
 ---
 
-## Scope
-
-Unit through load; GWT for P1–P8 critical paths.
-
 ## Acceptance criteria
 
-- [ ] E2E covers signup → mutual → chat happy path
+- [x] Integration tests for auth, mutual, C2C, IDOR, billing dry-run
+- [x] E2E covers verify → mutual → chat happy path
 - [ ] No PR merge with failing `npm test`
 
 ## Open questions

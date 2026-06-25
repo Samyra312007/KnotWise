@@ -50,7 +50,7 @@ export async function GET() {
   if (session instanceof NextResponse) return session;
 
   const members = await prisma.membership.findMany({
-    where: { orgId: session.orgId },
+    where: { orgId: session.orgId, matchmakerId: { not: session.matchmakerId } },
     include: { matchmaker: { select: { id: true, fullName: true, username: true } } },
   });
 

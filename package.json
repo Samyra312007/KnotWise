@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:e2e": "playwright test",
     "loadtest:health": "k6 run loadtests/health.js",
     "loadtest:openapi": "k6 run loadtests/openapi.js",
     "db:migrate": "prisma migrate dev",
@@ -26,6 +27,7 @@
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
     "@prisma/client": "^6.0.1",
+    "@sentry/node": "^9.5.0",
     "@uploadthing/react": "^7.3.0",
     "bcryptjs": "^2.4.3",
     "clsx": "^2.1.1",
@@ -42,7 +44,6 @@
     "react-dom": "19.0.0",
     "react-hook-form": "^7.54.1",
     "resend": "^4.1.2",
-    "@sentry/node": "^9.5.0",
     "sonner": "^1.7.1",
     "stripe": "^17.6.0",
     "tailwind-merge": "^2.5.5",
@@ -51,6 +52,7 @@
   },
   "devDependencies": {
     "@faker-js/faker": "^9.3.0",
+    "@playwright/test": "^1.61.1",
     "@tailwindcss/postcss": "^4.0.0-beta.7",
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^22.10.2",

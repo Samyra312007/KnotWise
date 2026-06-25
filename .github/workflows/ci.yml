@@ -44,3 +44,46 @@ jobs:
       - run: npm run typecheck
 
       - run: npm test
+
+  e2e:
+    runs-on: ubuntu-latest
+    needs: verify
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: knotwise
+          POSTGRES_PASSWORD: knotwise
+          POSTGRES_DB: knotwise
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://knotwise:knotwise@localhost:5432/knotwise
+      SESSION_SECRET: ci_session_secret_at_least_32_chars_long
+      EMAIL_DRY_RUN: "true"
+      RAZORPAY_DRY_RUN: "true"
+      CI: "true"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - run: npm ci
+
+      - run: npx prisma generate
+
+      - run: npx prisma migrate deploy
+
+      - run: npx playwright install chromium
+
+      - run: npm run test:e2e
