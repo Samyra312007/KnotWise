@@ -1,6 +1,6 @@
 import crypto from "crypto";
 import { prisma } from "@/lib/db";
-import { hashToken } from "@/lib/auth/mobile";
+import { hashToken } from "@/lib/auth/token-hash";
 import { logAuditEvent } from "@/lib/audit";
 import { delegateInviteEmail } from "@/lib/email/templates";
 import { enqueueMagicLinkEmail } from "@/lib/jobs/email-jobs";

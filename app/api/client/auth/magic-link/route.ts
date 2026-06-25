@@ -4,7 +4,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { magicLinkEmail } from "@/lib/email/templates";
 import { enqueueMagicLinkEmail } from "@/lib/jobs/email-jobs";
-import { hashToken } from "@/lib/auth/mobile";
+import { hashToken } from "@/lib/auth/token-hash";
 
 const schema = z.object({ email: z.string().email() });
 

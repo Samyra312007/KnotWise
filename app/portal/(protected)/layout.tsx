@@ -32,7 +32,6 @@ export default async function PortalProtectedLayout({ children }: { children: Re
             <Link href="/portal/family">Family</Link>
             <Link href="/portal/billing">Premium</Link>
             <Link href="/portal/astro">Kundli</Link>
-            <Link href="/portal/settings/notifications">Alerts</Link>
             <Link href="/portal/settings/privacy">Privacy</Link>
             <Link href="/portal/trust">Verify</Link>
             <form action="/api/client/auth/logout" method="POST">

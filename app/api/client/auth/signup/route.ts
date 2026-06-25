@@ -6,7 +6,7 @@ import { createEmptyBiodata } from "@/lib/profile/biodata";
 import { assignDefaultMatchmaker, resolveDefaultOrgId } from "@/lib/onboarding/assign";
 import { magicLinkEmail } from "@/lib/email/templates";
 import { enqueueMagicLinkEmail } from "@/lib/jobs/email-jobs";
-import { hashToken } from "@/lib/auth/mobile";
+import { hashToken } from "@/lib/auth/token-hash";
 import { logAuditEvent } from "@/lib/audit";
 import { trackAnalyticsEventAsync } from "@/lib/analytics/track";
 import { ANALYTICS_EVENTS } from "@/lib/analytics/taxonomy";

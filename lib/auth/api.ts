@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { headers } from "next/headers";
 import { getSession, getClientSession, type SessionData } from "./session";
 import type { MembershipRole } from "./roles";
 import { isOpsOrOwner } from "./roles";
@@ -63,14 +62,6 @@ export type DelegateSession = SessionData & {
 };
 
 export async function requireApiClientSession(): Promise<ClientSession | NextResponse<ApiError>> {
-  const headerStore = await headers();
-  const auth = headerStore.get("authorization");
-  if (auth?.startsWith("Bearer ")) {
-    const { validateClientMobileToken } = await import("@/lib/auth/client-mobile");
-    const bearer = await validateClientMobileToken(auth.slice(7));
-    if (bearer) return bearer;
-  }
-
   const session = await getClientSession();
   if (!session.clientId || !session.customerId || session.userType !== "client") {
     return unauthorized("Client sign-in required.");
@@ -79,29 +70,10 @@ export async function requireApiClientSession(): Promise<ClientSession | NextRes
 }
 
 export async function requireApiDelegateSession(): Promise<DelegateSession | NextResponse<ApiError>> {
-  const headerStore = await headers();
-  const auth = headerStore.get("authorization");
-  if (auth?.startsWith("Bearer ")) {
-    const { validateDelegateMobileToken } = await import("@/lib/auth/delegate-mobile");
-    const bearer = await validateDelegateMobileToken(auth.slice(7));
-    if (bearer) return bearer;
-  }
-
   const { getDelegateSession } = await import("@/lib/auth/session");
   const session = await getDelegateSession();
   if (!session.delegateId || !session.customerId || session.userType !== "delegate") {
     return unauthorized("Delegate sign-in required.");
   }
   return session as DelegateSession;
-}
-
-export async function requireBearerSession(req: Request): Promise<MatchmakerSession | NextResponse<ApiError>> {
-  const auth = req.headers.get("authorization");
-  if (auth?.startsWith("Bearer ")) {
-    const token = auth.slice(7);
-    const { validateMobileToken } = await import("@/lib/auth/mobile");
-    const result = await validateMobileToken(token);
-    if (result) return result;
-  }
-  return requireApiSession();
 }

@@ -57,7 +57,6 @@ model Matchmaker {
   notifications Notification[]
   handoffsFrom  Handoff[]          @relation("HandoffFrom")
   handoffsTo    Handoff[]          @relation("HandoffTo")
-  mobileTokens MobileAuthToken[]
   crmLeadsAssigned CrmLead[]        @relation("LeadAssignee")
 }
 
@@ -299,9 +298,6 @@ model ClientAccount {
   customer   Customer         @relation(fields: [customerId], references: [id], onDelete: Cascade)
   magicLinks MagicLinkToken[]
   verificationAttempts VerificationAttempt[]
-  deviceTokens DeviceToken[]
-  notificationPreference NotificationPreference?
-  mobileTokens ClientMobileAuthToken[]
   consent    ClientConsent?
   dataExportRequests DataExportRequest[]
   dataDeletionRequest DataDeletionRequest?
@@ -626,53 +622,6 @@ model Report {
   @@index([reporterId])
 }
 
-model MobileAuthToken {
-  id           String    @id @default(cuid())
-  matchmakerId String
-  tokenHash    String    @unique
-  expiresAt    DateTime
-  createdAt    DateTime  @default(now())
-  revokedAt    DateTime?
-
-  matchmaker Matchmaker @relation(fields: [matchmakerId], references: [id], onDelete: Cascade)
-}
-
-model DeviceToken {
-  id        String   @id @default(cuid())
-  clientId  String
-  platform  String
-  token     String   @unique
-  updatedAt DateTime @updatedAt
-  createdAt DateTime @default(now())
-
-  client ClientAccount @relation(fields: [clientId], references: [id], onDelete: Cascade)
-
-  @@index([clientId])
-}
-
-model NotificationPreference {
-  id           String  @id @default(cuid())
-  clientId     String  @unique
-  introPush    Boolean @default(true)
-  messagePush  Boolean @default(true)
-  reminderPush Boolean @default(true)
-
-  client ClientAccount @relation(fields: [clientId], references: [id], onDelete: Cascade)
-}
-
-model ClientMobileAuthToken {
-  id        String    @id @default(cuid())
-  clientId  String
-  tokenHash String    @unique
-  expiresAt DateTime
-  createdAt DateTime  @default(now())
-  revokedAt DateTime?
-
-  client ClientAccount @relation(fields: [clientId], references: [id], onDelete: Cascade)
-
-  @@index([clientId])
-}
-
 model FamilyDelegate {
   id              String    @id @default(cuid())
   customerId      String
@@ -686,7 +635,6 @@ model FamilyDelegate {
 
   customer     Customer                  @relation(fields: [customerId], references: [id], onDelete: Cascade)
   magicLinks   DelegateMagicLinkToken[]
-  mobileTokens DelegateAuthToken[]
 
   @@unique([customerId, email])
   @@index([email, status])
@@ -699,19 +647,6 @@ model DelegateMagicLinkToken {
   expiresAt  DateTime
   usedAt     DateTime?
   createdAt  DateTime  @default(now())
-
-  delegate FamilyDelegate @relation(fields: [delegateId], references: [id], onDelete: Cascade)
-
-  @@index([delegateId])
-}
-
-model DelegateAuthToken {
-  id         String    @id @default(cuid())
-  delegateId String
-  tokenHash  String    @unique
-  expiresAt  DateTime
-  createdAt  DateTime  @default(now())
-  revokedAt  DateTime?
 
   delegate FamilyDelegate @relation(fields: [delegateId], references: [id], onDelete: Cascade)
 

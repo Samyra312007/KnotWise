@@ -6,7 +6,7 @@ import { requireApiSession, notFound, forbidden } from "@/lib/auth/api";
 import { canWriteCustomer } from "@/lib/access/customers";
 import { magicLinkEmail } from "@/lib/email/templates";
 import { enqueueMagicLinkEmail } from "@/lib/jobs/email-jobs";
-import { hashToken } from "@/lib/auth/mobile";
+import { hashToken } from "@/lib/auth/token-hash";
 import { canWriteCustomers } from "@/lib/auth/roles";
 import type { Biodata } from "@/lib/types";
 

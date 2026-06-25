@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { requireApiClientSession } from "@/lib/auth/api";
 import { getScheduleForCustomer, resolveEndsAt } from "@/lib/scheduling/events";
 import { buildIcsEvent } from "@/lib/scheduling/ics";
-import { portalUrl } from "@/lib/push/deep-links";
+import { portalUrl } from "@/lib/portal/url";
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const session = await requireApiClientSession();

@@ -13,7 +13,6 @@ An operating console for a private matchmaking bureau. Editorial typography, sun
 - iron-session (matchmaker + client portal cookies)
 - Resend (email), Stripe (billing), UploadThing (photos), Inngest (background jobs)
 - NVIDIA NIM via OpenAI SDK (optional)
-- Expo mobile app scaffold in `apps/mobile/`
 
 ## Quick start
 
@@ -60,7 +59,6 @@ Each matchmaker has 8 assigned customers. One of Riya's clients has a portal acc
 | Photo upload | UploadThing on customer dossier |
 | Bulk shortlist | Matches tab toolbar |
 | ML re-rank | `/api/ml`, weekly Inngest cron |
-| Mobile | `apps/mobile/` + `POST /api/auth/token` |
 
 ## Scripts
 

@@ -247,7 +247,6 @@ async function main() {
   await prisma.conversation.deleteMany();
   await prisma.profileRevision.deleteMany();
   await prisma.mutualMatch.deleteMany();
-  await prisma.mobileAuthToken.deleteMany();
   await prisma.profileChangeRequest.deleteMany();
   await prisma.auditEvent.deleteMany();
   await prisma.modelVersion.deleteMany();

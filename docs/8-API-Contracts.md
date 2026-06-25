@@ -190,69 +190,11 @@ Mode priority: Pusher (if all `PUSHER_*` + `NEXT_PUBLIC_PUSHER_KEY`) → Redis S
 
 ---
 
-## 8.9 P7 — Push notifications (shipped)
-
-### `POST /api/client/devices`
-
-**Auth:** Client session  
-**Body:** `{ "token": string, "platform": "ios" | "android" | "web" }`  
-**Response:** `{ "ok": true, "device": { "id", "platform", "updatedAt" } }`
-
-### `GET /api/client/devices`
-
-Lists registered push tokens (preview only).
-
-### `DELETE /api/client/devices`
-
-**Body:** `{ "token": string }`
-
-### `GET /api/client/notifications/preferences`
-
-**Response:**
-
-```json
-{
-  "preferences": { "introPush": true, "messagePush": true, "reminderPush": true },
-  "dryRun": true,
-  "recentDryRun": []
-}
-```
-
-### `PATCH /api/client/notifications/preferences`
-
-**Body:** `{ "introPush"?: boolean, "messagePush"?: boolean, "reminderPush"?: boolean }`
-
-**Push payload data (all types):** includes `type`, entity ids, `url` (web), `deepLink` (mobile).
-
-**Env:** `PUSH_DRY_RUN`, `EXPO_ACCESS_TOKEN`, `CLIENT_PORTAL_URL`
-
----
-
-## 8.10 P8 — Mobile client auth (shipped)
-
-### `POST /api/client/auth/token`
-
-**Auth:** Public  
-**Body:** `{ "magicToken": string }` — one-time token from magic link email  
-**Response:** `{ "ok": true, "token": string, "needsOnboarding": boolean, "client": {...} }`
-
-### `GET /api/client/auth/token`
-
-**Auth:** `Authorization: Bearer` — validates mobile session
-
-### `DELETE /api/client/auth/token`
-
-**Auth:** Bearer — revokes mobile session
-
-All `/api/client/*` routes accept cookie session (web) or Bearer token (mobile).
-
----
-
-## 8.11 P9 — Discovery (shipped)
+## 8.9 P9 — Discovery (shipped)
 
 ### `GET /api/client/discover?city=&ageMin=&ageMax=&religion=&q=&cursor=&limit=`
 
-**Auth:** Client session or Bearer  
+**Auth:** Client session  
 **Response:** Ranked pool profiles with **limited reveal** + `interestStatus` if already expressed.
 
 ```json

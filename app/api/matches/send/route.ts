@@ -11,7 +11,6 @@ import { logAuditEvent } from "@/lib/audit";
 import { canWriteCustomers } from "@/lib/auth/roles";
 import { createReciprocalIntroPair } from "@/lib/matching/mutual";
 import { isSameGotra, gotraConflictMessage } from "@/lib/trust/gotra";
-import { notifyIntroPairSent } from "@/lib/push/triggers";
 
 const schema = z.object({
   customerId: z.string().min(1),
@@ -156,15 +155,6 @@ export async function POST(req: Request) {
     entityId: customer.id,
     metadata: { candidateId: candidate.id, emailLogId: email.id },
   });
-
-  void notifyIntroPairSent({
-    primaryCustomerId: customer.id,
-    primarySuggestionId: suggestion.id,
-    primaryCandidateName: `${candBio.firstName} ${candBio.lastName}`,
-    reciprocalCustomerId: candidate.linkedCustomerId,
-    introPairId: pair.introPairId,
-    reciprocalCandidateName: `${clientBio.firstName} ${clientBio.lastName}`,
-  }).catch(() => undefined);
 
   return NextResponse.json({
     ok: true,

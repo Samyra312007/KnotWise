@@ -32,8 +32,8 @@
 | Consumer P4 | C2C chat | PRD §P4, ADR 002 | Shipped |
 | Consumer P5 | Trust & verification | PRD §P5, doc 9, ADR 003 | Shipped |
 | Consumer P6 | Realtime messaging | PRD §P6, doc 17, ADR 002 | Shipped |
-| Consumer P7 | Push notifications | PRD §P7, doc 17, doc 14 | Shipped |
-| Consumer P8 | Mobile app v1 | PRD §P8, doc 14 | Shipped |
+| Consumer P7 | Push notifications | PRD §P7, doc 17 | Removed (web-only) |
+| Consumer P8 | Mobile app v1 | PRD §P8, doc 14 | Removed |
 | Consumer P9 | Discovery feed | PRD §P9, ADR 001/005 | Shipped |
 | Consumer P10 | Family delegates | PRD §P10, ADR 007 | Shipped |
 | Consumer P11 | Payments India | PRD §P11, doc 16, ADR 004 | Shipped |
@@ -57,8 +57,8 @@
 | P4 C2C chat | Shipped (`app/portal/chat`, `app/api/c2c/*`) |
 | P5 trust & verification | Shipped (`app/portal/trust`, MSG91 OTP, reports) |
 | P6 realtime messaging | Shipped (`lib/realtime/*`, Pusher + Redis + SSE) |
-| P7 push notifications | Shipped (`lib/push/*`, Expo, device tokens, preferences) |
-| P8 mobile app v1 | Shipped (`apps/mobile/`, client bearer auth, Expo Router) |
+| P7 push notifications | Removed (Expo push + device tokens decommissioned) |
+| P8 mobile app v1 | Removed (`apps/mobile/` and bearer auth decommissioned) |
 | P9 discovery feed | Shipped (`/portal/discover`, `lib/discovery/*`) |
 | P10 family delegates | Shipped (`/portal/family`, `/portal/delegate`, `lib/family/*`) |
 | P11 payments India | Shipped (`/portal/billing`, Razorpay, `/signup/bureau`) |

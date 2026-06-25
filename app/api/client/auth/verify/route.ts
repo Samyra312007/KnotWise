@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { getClientSession } from "@/lib/auth/session";
-import { hashToken } from "@/lib/auth/mobile";
+import { hashToken } from "@/lib/auth/token-hash";
 import { needsOnboarding, parseCustomerBiodata } from "@/lib/onboarding/status";
 
 const schema = z.object({ token: z.string().min(1) });

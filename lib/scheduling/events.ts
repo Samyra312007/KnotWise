@@ -8,12 +8,7 @@ import {
   scheduleProposalEmail,
   scheduleReminderEmail,
 } from "@/lib/email/templates";
-import { portalUrl } from "@/lib/push/deep-links";
-import {
-  notifyDateReminder,
-  notifyScheduleAccepted,
-  notifyScheduleProposal,
-} from "@/lib/push/triggers";
+import { portalUrl } from "@/lib/portal/url";
 import {
   DEFAULT_EVENT_DURATION_MS,
   MIN_SCHEDULE_LEAD_MS,
@@ -215,13 +210,6 @@ export async function proposeSchedule(input: {
   });
   const proposerName = proposer ? `${proposer.firstName} ${proposer.lastName}` : "Your match";
 
-  void notifyScheduleProposal({
-    recipientCustomerId: access.counterpart.id,
-    eventId: event.id,
-    proposerName,
-    whenLabel: formatWhenLabel(input.startsAt),
-  }).catch(() => undefined);
-
   const account = await prisma.clientAccount.findUnique({
     where: { customerId: access.counterpart.id },
     select: { email: true, notifyEmail: true, customer: { select: { firstName: true } } },
@@ -355,22 +343,6 @@ export async function respondToSchedule(input: {
     const proposerName = proposer ? `${proposer.firstName} ${proposer.lastName}` : "Your match";
     const whenLabel = formatWhenLabel(existing.startsAt);
 
-    void notifyScheduleAccepted({
-      recipientCustomerId: existing.proposedById,
-      eventId: existing.id,
-      counterpartName: accepterName,
-      whenLabel,
-      hasVideo: existing.mode === "video",
-    }).catch(() => undefined);
-
-    void notifyScheduleAccepted({
-      recipientCustomerId: input.customerId,
-      eventId: existing.id,
-      counterpartName: proposerName,
-      whenLabel,
-      hasVideo: existing.mode === "video",
-    }).catch(() => undefined);
-
     for (const [recipientId, counterpartName] of [
       [existing.proposedById, accepterName],
       [input.customerId, proposerName],
@@ -422,13 +394,6 @@ export async function sendDueScheduleReminders() {
     const title = event.title ?? "Upcoming date";
 
     for (const customerId of [event.mutualMatch.clientAId, event.mutualMatch.clientBId]) {
-      void notifyDateReminder({
-        customerId,
-        eventId: event.id,
-        title,
-        whenLabel,
-      }).catch(() => undefined);
-
       const account = await prisma.clientAccount.findUnique({
         where: { customerId },
         select: { email: true, notifyEmail: true, customer: { select: { firstName: true } } },

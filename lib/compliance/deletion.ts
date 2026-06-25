@@ -133,8 +133,6 @@ export async function executeCustomerDeletion(customerId: string) {
   });
 
   if (customer.clientAccount) {
-    await prisma.deviceToken.deleteMany({ where: { clientId: customer.clientAccount.id } });
-    await prisma.clientMobileAuthToken.deleteMany({ where: { clientId: customer.clientAccount.id } });
     await prisma.magicLinkToken.deleteMany({ where: { clientId: customer.clientAccount.id } });
     await prisma.clientAccount.update({
       where: { id: customer.clientAccount.id },
