@@ -25,10 +25,11 @@ export function PhotoUpload({
       }}
       appearance={{
         button:
-          "h-9 px-4 font-mono text-[10px] uppercase tracking-[0.18em] bg-paper-quiet border border-ink/24 text-ink",
+          "h-7 min-h-0 px-2.5 ut-upload-btn font-mono text-[9px] uppercase tracking-[0.14em] bg-transparent border border-ink/20 text-ink-mute hover:text-ink hover:border-ink/35 rounded-[2px] cursor-pointer",
+        allowedContent: "hidden",
       }}
       content={{
-        button: "Upload photo",
+        button: "Photo",
       }}
     />
   );

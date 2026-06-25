@@ -58,7 +58,7 @@ Top dimensions: ${tops.join(", ")}`;
     { role: "system", content: EXPLAIN_SYSTEM_PROMPT },
     ...EXPLAIN_FEWSHOT,
     { role: "user", content: userMsg },
-  ]);
+  ], { retry: false });
 
   if (!out) return fallback();
 

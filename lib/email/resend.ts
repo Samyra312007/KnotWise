@@ -2,6 +2,12 @@ import { Resend } from "resend";
 import type { EmailPayload, EmailProvider, EmailSendResult } from "./provider";
 import { isEmailSuppressed } from "@/lib/scale/email-suppression";
 
+export function emailDryRun(): boolean {
+  if (process.env.EMAIL_DRY_RUN === "true") return true;
+  if (process.env.EMAIL_DRY_RUN === "false") return false;
+  return !process.env.RESEND_API_KEY;
+}
+
 export class ResendProvider implements EmailProvider {
   private client: Resend | null;
 
@@ -10,13 +16,20 @@ export class ResendProvider implements EmailProvider {
   }
 
   async send(payload: EmailPayload): Promise<EmailSendResult> {
-    if (process.env.EMAIL_DRY_RUN !== "true" && this.client) {
+    const dryRun = emailDryRun();
+    if (!dryRun && this.client) {
       const suppressed = await isEmailSuppressed(payload.to);
       if (suppressed) {
         return { status: "failed", errorMessage: "Recipient suppressed due to bounce or complaint." };
       }
     }
-    if (process.env.EMAIL_DRY_RUN === "true" || !this.client) {
+    if (dryRun || !this.client) {
+      const linkMatch = payload.html?.match(/https?:\/\/[^\s"'<>]+/);
+      if (linkMatch && process.env.NODE_ENV !== "production") {
+        console.log(`[email:dry-run] To: ${payload.to} | ${linkMatch[0]}`);
+      } else if (process.env.NODE_ENV !== "production") {
+        console.log(`[email:dry-run] To: ${payload.to} Subject: ${payload.subject}`);
+      }
       return { status: "sent", providerId: `dry-run-${Date.now()}` };
     }
     const from = process.env.EMAIL_FROM ?? "KnotWise <onboarding@resend.dev>";

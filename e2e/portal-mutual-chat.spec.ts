@@ -39,17 +39,22 @@ test.describe("portal mutual to chat", () => {
     const pageA = await contextA.newPage();
     const pageB = await contextB.newPage();
 
+    const signedIn = (pathname: string) =>
+      pathname === "/portal" || pathname === "/portal/onboarding";
+
     await pageA.goto(`/portal/verify?token=${state.tokenA}`);
-    await pageA.waitForURL(/\/portal(\/onboarding)?/, { timeout: 15_000 });
+    await pageA.waitForURL((url) => signedIn(url.pathname), { timeout: 15_000 });
 
     await pageB.goto(`/portal/verify?token=${state.tokenB}`);
-    await pageB.waitForURL(/\/portal(\/onboarding)?/, { timeout: 15_000 });
+    await pageB.waitForURL((url) => signedIn(url.pathname), { timeout: 15_000 });
 
     await pageA.goto(`/portal/matches/${state.suggestionAId}`);
+    await expect(pageA.getByRole("button", { name: "Accept intro" })).toBeVisible({ timeout: 15_000 });
     await pageA.getByRole("button", { name: "Accept intro" }).click();
     await expect(pageA.getByText(/interested|accepted|waiting/i)).toBeVisible({ timeout: 10_000 });
 
     await pageB.goto(`/portal/matches/${state.suggestionBId}`);
+    await expect(pageB.getByRole("button", { name: "Accept intro" })).toBeVisible({ timeout: 15_000 });
     await pageB.getByRole("button", { name: "Accept intro" }).click();
     await expect(pageB.getByText(/mutual match/i)).toBeVisible({ timeout: 10_000 });
     await expect(pageB.getByRole("link", { name: "Open chat" })).toBeVisible({ timeout: 10_000 });

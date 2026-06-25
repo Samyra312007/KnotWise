@@ -3,8 +3,10 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { magicLinkEmail } from "@/lib/email/templates";
+import { emailDryRun } from "@/lib/email/resend";
 import { enqueueMagicLinkEmail } from "@/lib/jobs/email-jobs";
 import { hashToken } from "@/lib/auth/token-hash";
+import { portalUrl } from "@/lib/portal/url";
 
 const schema = z.object({ email: z.string().email() });
 
@@ -34,10 +36,13 @@ export async function POST(req: Request) {
     },
   });
 
-  const base = process.env.CLIENT_PORTAL_URL ?? process.env.APP_URL ?? "http://localhost:3000";
-  const link = `${base}/portal/verify?token=${token}`;
+  const link = portalUrl(`/verify?token=${token}`);
   const tpl = magicLinkEmail(link, account.customer.firstName);
   await enqueueMagicLinkEmail({ to: account.email, ...tpl });
+
+  if (emailDryRun()) {
+    console.log(`[email] Magic link for ${account.email}: ${link}`);
+  }
 
   return NextResponse.json({ ok: true, message: "If that email is registered, a link is on its way." });
 }

@@ -13,6 +13,7 @@ import { ANALYTICS_EVENTS } from "@/lib/analytics/taxonomy";
 import { ensureCrmLead } from "@/lib/crm/leads";
 import { recordSignupConsent } from "@/lib/compliance/consent";
 import { validateSignupAge } from "@/lib/compliance/config";
+import { portalUrl } from "@/lib/portal/url";
 
 const schema = z.object({
   email: z.string().email(),
@@ -114,8 +115,7 @@ export async function POST(req: Request) {
     },
   });
 
-  const base = process.env.CLIENT_PORTAL_URL ?? process.env.APP_URL ?? "http://localhost:3000";
-  const link = `${base}/portal/verify?token=${token}`;
+  const link = portalUrl(`/verify?token=${token}`);
   const tpl = magicLinkEmail(link, biodata.firstName);
   await enqueueMagicLinkEmail({ to: email, ...tpl });
 

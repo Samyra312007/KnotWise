@@ -5,9 +5,11 @@ import { prisma } from "@/lib/db";
 import { requireApiSession, notFound, forbidden } from "@/lib/auth/api";
 import { canWriteCustomer } from "@/lib/access/customers";
 import { magicLinkEmail } from "@/lib/email/templates";
+import { emailDryRun } from "@/lib/email/resend";
 import { enqueueMagicLinkEmail } from "@/lib/jobs/email-jobs";
 import { hashToken } from "@/lib/auth/token-hash";
 import { canWriteCustomers } from "@/lib/auth/roles";
+import { portalUrl } from "@/lib/portal/url";
 import type { Biodata } from "@/lib/types";
 
 const schema = z.object({ email: z.string().email().optional() });
@@ -49,10 +51,13 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     },
   });
 
-  const base = process.env.CLIENT_PORTAL_URL ?? process.env.APP_URL ?? "http://localhost:3000";
-  const link = `${base}/portal/verify?token=${token}`;
+  const link = portalUrl(`/verify?token=${token}`);
   const tpl = magicLinkEmail(link, biodata.firstName);
   await enqueueMagicLinkEmail({ to: email, ...tpl });
+
+  if (emailDryRun()) {
+    console.log(`[email] Portal invite for ${email}: ${link}`);
+  }
 
   return NextResponse.json({ ok: true, email });
 }

@@ -13,6 +13,7 @@ import type {
   Stage,
   Trinary,
 } from "../lib/types";
+import { ageFromDOB } from "../lib/types";
 import { buildPoolSearchText } from "../lib/discovery/search-text";
 import {
   CITIES_WEIGHTED,
@@ -371,6 +372,12 @@ async function main() {
     for (let i = 0; i < 8; i++) {
       const gender: Gender = i % 2 === 0 ? "female" : "male";
       const b = generateBiodata(gender);
+      if (mm.username === "riya" && i === 0) {
+        b.firstName = "Diya";
+        b.lastName = "Sinha";
+        b.email = "diya.sinha@knotwise.local";
+        b.photoUrl = portraitUrl("female", "Diya", "Sinha", ageFromDOB(b.dateOfBirth));
+      }
       const stage = STAGES_FOR_CUSTOMERS[i];
       const customer = await prisma.customer.create({
         data: {

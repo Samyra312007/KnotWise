@@ -16,7 +16,15 @@ export default function () {
   const res = http.get(`${baseUrl}/api/health`);
   check(res, {
     "health status 200": (r) => r.status === 200,
-    "health body ok": (r) => r.json("status") === "ok" || r.json("status") === "degraded",
+    "health body ok": (r) => {
+      if (r.status !== 200) return false;
+      try {
+        const status = r.json("status");
+        return status === "ok" || status === "degraded";
+      } catch {
+        return false;
+      }
+    },
   });
   sleep(0.2);
 }

@@ -7,10 +7,12 @@ export type ChatMessage = {
 
 let cachedClient: OpenAI | null = null;
 let warned = false;
+let aiCooldownUntil = 0;
 
 function getClient(): OpenAI | null {
+  if (Date.now() < aiCooldownUntil) return null;
   const key = process.env.NVIDIA_NIM_API_KEY;
-  if (!key) {
+  if (!key || process.env.AI_FORCE_FALLBACK === "true") {
     if (!warned && process.env.NODE_ENV !== "production") {
       console.warn(
         "[ai] NVIDIA_NIM_API_KEY not set — using deterministic fallback for explanations and emails."
@@ -28,6 +30,21 @@ function getClient(): OpenAI | null {
 }
 
 const DEFAULT_MODEL = process.env.NVIDIA_NIM_MODEL ?? "meta/llama-3.3-70b-instruct";
+const RATE_LIMIT_COOLDOWN_MS = 5 * 60_000;
+
+function noteAiFailure(err: unknown) {
+  const message = err instanceof Error ? err.message : String(err);
+  if (process.env.NODE_ENV !== "production") {
+    console.warn("[ai] completion failed:", message);
+  }
+  if (message.includes("429") || message.toLowerCase().includes("rate limit")) {
+    aiCooldownUntil = Date.now() + RATE_LIMIT_COOLDOWN_MS;
+    cachedClient = null;
+    if (process.env.NODE_ENV !== "production") {
+      console.warn("[ai] rate limited — using template fallbacks for 5 minutes.");
+    }
+  }
+}
 
 export async function complete(
   messages: ChatMessage[],
@@ -37,6 +54,7 @@ export async function complete(
   if (!client) return null;
 
   const timeoutMs = opts.timeoutMs ?? 6_000;
+  const shouldRetry = opts.retry === true;
 
   const attempt = async (): Promise<string | null> => {
     const controller = new AbortController();
@@ -64,9 +82,7 @@ export async function complete(
       }
       return text;
     } catch (err) {
-      if (process.env.NODE_ENV !== "production") {
-        console.warn("[ai] completion failed:", (err as Error).message);
-      }
+      noteAiFailure(err);
       return null;
     } finally {
       clearTimeout(timer);
@@ -74,10 +90,12 @@ export async function complete(
   };
 
   let out = await attempt();
-  if (!out && opts.retry !== false) out = await attempt();
+  if (!out && shouldRetry) out = await attempt();
   return out;
 }
 
 export function aiEnabled(): boolean {
+  if (Date.now() < aiCooldownUntil) return false;
+  if (process.env.AI_FORCE_FALLBACK === "true") return false;
   return !!process.env.NVIDIA_NIM_API_KEY;
 }

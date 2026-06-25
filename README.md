@@ -33,7 +33,11 @@ npm run dev
 # Client signup:     http://localhost:3000/portal/signup
 ```
 
-Set `EMAIL_DRY_RUN=true` in `.env` for local dev without Resend.
+Set `EMAIL_DRY_RUN=true` in `.env` to skip Resend and print magic links in the **dev server terminal** instead.
+
+With `RESEND_API_KEY` set and `EMAIL_DRY_RUN=false` (default in `.env.example`), portal login sends a real email via Resend. The address must match a client account your matchmaker has on file (seed example: `diya.sinha@knotwise.local`).
+
+Set `AI_FORCE_FALLBACK=true` if NVIDIA NIM returns 429 rate limits during match drafting.
 
 ## Seed accounts
 
@@ -67,9 +71,11 @@ Each matchmaker has 8 assigned customers. One of Riya's clients has a portal acc
 | `npm run dev` | Dev server |
 | `npm run docker:up` | Start Postgres via Docker Compose |
 | `npm run db:seed` | Seed org, matchmakers, customers, pool |
+| `npm run db:restore-diya-photo` | Reset Diya Sinha portrait to seeded URL |
 | `npm run ml:tune -- <orgId>` | Offline weight tuning |
 | `npm test` | Unit + integration tests (Vitest) |
-| `npm run test:e2e` | Playwright portal mutual → chat |
+| `npm run test:e2e` | Install Chromium (if needed) + Playwright portal mutual → chat |
+| `npm run loadtest:health` | k6 health load test (uses Docker if k6 is not installed) |
 
 ## Environment variables
 
